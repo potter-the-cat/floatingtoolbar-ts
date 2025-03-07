@@ -82,6 +82,22 @@ export function handleSelection(event) {
         this.state.selectedText = selectedText;
         this.state.selectionRange = range.cloneRange();
         this.state.isVisible = true;
+        // Check for existing link
+        const existingLink = this.checkForExistingLink(selection);
+        if (existingLink) {
+            this.state.existingLink = existingLink;
+            this.state.currentView = 'linkInput';
+            if (this.elements.linkInput) {
+                this.elements.linkInput.value = existingLink.href;
+            }
+        }
+        else {
+            this.state.existingLink = null;
+            this.state.currentView = 'initial';
+            if (this.elements.linkInput) {
+                this.elements.linkInput.value = '';
+            }
+        }
         // Add following-selection class to maintain width
         if (this.elements.toolbar) {
             this.elements.toolbar.classList.add('following-selection');

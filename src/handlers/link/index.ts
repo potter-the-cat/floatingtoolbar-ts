@@ -21,6 +21,23 @@ export function handleLinkButtonClick(
     // Store current width before switching views
     const currentWidth = this.elements.toolbar?.getBoundingClientRect().width;
     
+    // Check for existing link
+    const selection = window.getSelection();
+    if (selection) {
+        const existingLink = checkForExistingLink.call(this, selection);
+        if (existingLink) {
+            this.state.existingLink = existingLink;
+            if (this.elements.linkInput) {
+                this.elements.linkInput.value = existingLink.href;
+            }
+        } else {
+            this.state.existingLink = null;
+            if (this.elements.linkInput) {
+                this.elements.linkInput.value = '';
+            }
+        }
+    }
+    
     // Update state
     this.state.currentView = 'linkInput';
 

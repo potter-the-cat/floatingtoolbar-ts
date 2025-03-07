@@ -7,6 +7,7 @@ export interface SelectionHandlerContext {
     updateView: () => void;
     updateFormatButtonStates: () => void;
     clearFormatButtonStates: () => void;
+    checkForExistingLink: (selection: Selection) => HTMLAnchorElement | null;
 }
 export declare function handleSelection(this: SelectionHandlerContext, event: MouseEvent | KeyboardEvent): void;
 export declare function hasSelection(this: SelectionHandlerContext): boolean;
