@@ -113,3 +113,42 @@ declare global {
     }
 }
 export {};
+/**
+ * Interface for style management operations
+ */
+export interface StyleManager {
+    injectRequiredStyles(): void;
+    injectToolbarStyles(): void;
+    cleanup(): void;
+}
+/**
+ * Interface for link utility functions
+ */
+export interface LinkUtils {
+    findClosestLink(node: Node | null): HTMLAnchorElement | null;
+    isValidUrl(url: string): boolean;
+    ensureValidUrl(url: string): string;
+}
+/**
+ * Theme options for the toolbar
+ */
+export type ThemeType = 'dark' | 'light' | 'custom';
+/**
+ * View states for the toolbar
+ */
+export type ViewType = 'initial' | 'linkInput';
+/**
+ * Position configuration for the toolbar
+ */
+export interface Position {
+    x: number;
+    y: number;
+}
+/**
+ * Selection state interface
+ */
+export interface SelectionState {
+    range: Range | null;
+    rect: DOMRect | null;
+    text: string;
+}
