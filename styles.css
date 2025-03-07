@@ -1,0 +1,314 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+p {
+    margin-bottom: 15px;
+}
+
+.content {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #e1e1e1;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    min-height: 200px;
+    transition: background-color 0.2s ease;
+}
+
+.content:hover {
+    background-color: #fff;
+    border-color: #3498db;
+}
+
+.content:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.content hr {
+    border: none;
+    border-top: 2px solid #eee;
+    margin: 20px 0;
+}
+
+/* List styles */
+.content ul, .content ol {
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+    color: inherit;
+}
+
+.content ul li, .content ol li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.content ul {
+    list-style-type: disc;
+}
+
+.content ol {
+    list-style-type: decimal;
+}
+
+/* Nested list styles */
+.content ul ul, .content ol ol,
+.content ul ol, .content ol ul {
+    margin: 0.5rem 0 0.5rem 1rem;
+}
+
+/* Ensure list items maintain proper color */
+.content li, .content li p {
+    color: inherit;
+}
+
+/* Floating Toolbar Styles */
+.floating-toolbar {
+    position: absolute;
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    z-index: 1000;
+    display: none; /* Initially hidden */
+    border: 1px solid #e1e1e1;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 100%;
+    width: fit-content;
+}
+
+.floating-toolbar:before,
+.floating-toolbar:after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    pointer-events: none;
+}
+
+/* Default state - arrow at bottom */
+.floating-toolbar:after {
+    bottom: -8px;
+    border-top: 8px solid #fff;
+    border-bottom: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+/* When toolbar is below selection - arrow at top */
+.floating-toolbar.below:after {
+    display: none;
+}
+
+.floating-toolbar.below:before {
+    top: -8px;
+    border-bottom: 8px solid #fff;
+    border-top: none;
+    filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.floating-toolbar.fixed-position {
+    display: flex; /* Show in fixed mode */
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+.floating-toolbar.following-selection {
+    display: flex;
+    position: absolute;
+}
+
+.toolbar-initial {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    row-gap: 8px;
+}
+
+/* Group related buttons together */
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+/* Remove old separators since we're using groups now */
+#strikethrough-button::after,
+#superscript-button::after,
+#h2-button::after,
+#quote-button::after {
+    display: none;
+}
+
+/* Adjust button spacing */
+.toolbar-button {
+    background: none;
+    border: none;
+    padding: 6px;
+    margin: 0;
+    cursor: pointer;
+    color: #4a5568;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+/* Remove old margin adjustments */
+#subscript-button,
+#h1-button,
+#drop-cap-button,
+#link-button {
+    margin-left: 0;
+}
+
+#link-button {
+    border-left: none;
+    padding-left: 6px;
+}
+
+/* Link input container adjustments */
+.toolbar-link-input {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    flex-wrap: wrap;
+}
+
+#link-input {
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    padding: 5px 8px;
+    margin-right: 5px;
+    font-size: 14px;
+    width: 200px;
+}
+
+#link-input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Ensure text selection remains visible */
+::selection {
+    background-color: rgba(52, 152, 219, 0.3);
+}
+
+/* Heading buttons */
+#h1-button, #h2-button {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#h1-button i, #h2-button i {
+    margin-right: 2px;
+}
+
+/* Code formatting */
+#code-button.active {
+    background-color: #2d3748;
+    color: #fff;
+}
+
+/* Quote formatting */
+#quote-button.active {
+    background-color: #f7fafc;
+    border-left: 3px solid #3182ce;
+}
+
+/* Drop cap button */
+#drop-cap-button.active {
+    background-color: #ebf8ff;
+    color: #3182ce;
+}
+
+/* Add styles for elements with drop cap */
+[style*="initial-letter"] {
+    initial-letter: 3;
+    -webkit-initial-letter: 3;
+    color: #3182ce;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Code element styles */
+code {
+    background-color: #f7fafc;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+/* Blockquote styles */
+blockquote {
+    border-left: 4px solid #3182ce;
+    margin: 1em 0;
+    padding-left: 1em;
+    color: #4a5568;
+    font-style: italic;
+}
+
+/* Add a separator between formatting buttons and link button */
+#remove-link {
+    color: #e74c3c;
+    margin-right: 5px;
+}
+
+#remove-link:hover {
+    background-color: #fee;
+    color: #c0392b;
+}
+
+#visit-link {
+    color: #27ae60;
+    margin-right: 5px;
+}
+
+#visit-link:hover {
+    background-color: #efffef;
+    color: #219a52;
+} 

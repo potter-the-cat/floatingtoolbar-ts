@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Toolbar Tests</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="themes/custom-theme.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            position: relative;
+        }
+
+        .test-case {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .test-case h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .test-description {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        #floating-editor,
+        #light-editor,
+        #themed-editor {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content-wrapper {
+            position: relative;
+        }
+
+        .toolbar-container {
+            position: absolute;
+            width: 100%;
+            height: 0;
+            pointer-events: none;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        /* Ensure the floating toolbar itself can receive pointer events */
+        .floating-toolbar {
+            pointer-events: auto;
+            position: absolute;
+            z-index: 1001;
+            transform: translate(-50%, 0);
+            margin-top: -10px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            background: var(--toolbar-bg, #000000);
+            border-radius: 4px;
+            padding: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .floating-toolbar.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .floating-toolbar::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--toolbar-bg, #000000);
+            bottom: -6px;
+        }
+
+        .floating-toolbar.below::after {
+            border-top: none;
+            border-bottom: 6px solid var(--toolbar-bg, #000000);
+            bottom: auto;
+            top: -6px;
+        }
+
+        [contenteditable] {
+            min-height: 100px;
+            outline: none;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        /* Sample content styling */
+        .content p {
+            line-height: 1.6;
+            margin-bottom: 1em;
+        }
+
+        .content h1 {
+            font-size: 1.8em;
+            margin: 0.8em 0;
+        }
+
+        .content h2 {
+            font-size: 1.5em;
+            margin: 0.6em 0;
+        }
+
+        .content ul, .content ol {
+            padding-left: 2em;
+            margin-bottom: 1em;
+        }
+
+        .content blockquote {
+            border-left: 3px solid #ccc;
+            margin-left: 0;
+            padding-left: 1em;
+            color: #555;
+            font-style: italic;
+        }
+
+        .content code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- Test Case 1: Dark Theme Floating Toolbar -->
+    <div class="test-case">
+        <h2>Floating Toolbar - Dark Theme</h2>
+        <div class="test-description">
+            This editor uses a floating toolbar that appears near the text selection. Try selecting any text below to see the toolbar appear.
+        </div>
+        <div id="floating-editor">
+            <div class="content-wrapper">
+                <div class="toolbar-container"></div>
+                <div class="editable-content" contenteditable="true">
+                    <p>Welcome to the <strong>floating toolbar</strong> demo. Try selecting this text to see the toolbar appear near your selection. You can format text as <em>italic</em>, <u>underlined</u>, or <code>code</code>.</p>
+                    <p>The toolbar will automatically position itself above or below your selection depending on available space, and will follow your selection as you move through the document.</p>
+                    <h2>Features to Try:</h2>
+                    <ul>
+                        <li>Select text to see the floating toolbar appear</li>
+                        <li>Try different formatting options</li>
+                        <li>Create links by selecting text and clicking the link icon</li>
+                        <li>Notice how the toolbar follows your selection</li>
+                    </ul>
+                    <p>This floating toolbar is perfect for distraction-free editing while keeping formatting tools accessible exactly when and where you need them.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Case 2: Light Theme Floating Toolbar -->
+    <div class="test-case">
+        <h2>Floating Toolbar - Light Theme</h2>
+        <div class="test-description">
+            Same floating behavior with light styling. Select text to see the toolbar appear.
+        </div>
+        <div id="light-editor">
+            <div class="content-wrapper">
+                <div class="toolbar-container"></div>
+                <div class="light-content" contenteditable="true">
+                    <p>This editor demonstrates the <strong>light theme</strong> with the same floating behavior. Select this text to see how the light-themed toolbar appears.</p>
+                    <p>The toolbar will automatically adjust its position based on your selection and available screen space, ensuring it's always visible and accessible.</p>
+                    <blockquote>Try selecting this blockquote text to see how the toolbar appears when working with different content types.</blockquote>
+                    <p>You can try creating lists:</p>
+                    <ol>
+                        <li>First item</li>
+                        <li>Second item</li>
+                        <li>Third item</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Case 3: Custom Theme Floating Toolbar -->
+    <div class="test-case">
+        <h2>Floating Toolbar - Custom Theme</h2>
+        <div class="test-description">
+            Custom themed floating toolbar with limited button set.
+        </div>
+        <div id="themed-editor">
+            <div class="content-wrapper">
+                <div class="toolbar-container"></div>
+                <div class="themed-content" contenteditable="true">
+                    <p>This editor shows a <strong>custom themed</strong> floating toolbar with a limited set of formatting options. Select this text to see the custom toolbar appear.</p>
+                    <p>This configuration demonstrates how you can customize both the appearance and available buttons to match your application's specific needs.</p>
+                    <p>Try selecting different parts of this text to see how the toolbar follows your cursor and selection.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import the utilities
+        import * as utils from './dist/utils.js';
+        import { addRequiredStyles, addToolbarStyles } from './dist/dom.js';
+        import { FloatingToolbar } from './script.js';
+        
+        // Make them available to the global scope for script.js to use
+        window.isValidUrl = utils.isValidUrl;
+        window.ensureValidUrl = utils.ensureValidUrl;
+        window.findClosestLink = utils.findClosestLink;
+        
+        // Initialize toolbars
+        // Dark Theme Floating Toolbar
+        window.floatingToolbar = new FloatingToolbar({
+            container: '#floating-editor',
+            content: '.editable-content',
+            mode: 'floating',  // Key setting for floating behavior
+            theme: 'dark',
+            debug: true,
+            offset: { x: 0, y: 10 }, // Ensure some space between selection and toolbar
+            toolbarId: 'floating-toolbar',
+            buttons: {
+                text: {
+                    bold: true,
+                    italic: true,
+                    underline: true,
+                    strikethrough: true
+                },
+                heading: {
+                    h1: true,
+                    h2: true
+                },
+                special: {
+                    code: true,
+                    quote: true
+                },
+                list: {
+                    bullet: true,
+                    number: true
+                },
+                link: {
+                    url: true
+                }
+            }
+        }, { addRequiredStyles, addToolbarStyles });
+
+        // Light Theme Floating Toolbar
+        window.lightToolbar = new FloatingToolbar({
+            container: '#light-editor',
+            content: '.light-content',
+            mode: 'floating',  // Key setting for floating behavior
+            theme: 'light',
+            debug: true,
+            toolbarId: 'light-toolbar',
+            buttons: {
+                text: {
+                    bold: true,
+                    italic: true,
+                    underline: true,
+                    strikethrough: true
+                },
+                heading: {
+                    h1: true,
+                    h2: true
+                },
+                list: {
+                    bullet: true,
+                    number: true
+                },
+                special: {
+                    dropCap: true,
+                    code: true,
+                    quote: true,
+                    hr: true
+                },
+                link: {
+                    url: true
+                }
+            }
+        }, { addRequiredStyles, addToolbarStyles });
+
+        // Custom Theme Floating Toolbar (with limited buttons)
+        window.themedToolbar = new FloatingToolbar({
+            container: '#themed-editor',
+            content: '.themed-content',
+            mode: 'floating',  // Key setting for floating behavior
+            theme: 'custom',
+            debug: true,
+            toolbarId: 'themed-toolbar',
+            buttons: {
+                text: {
+                    bold: true,
+                    italic: true,
+                    underline: true
+                },
+                link: {
+                    url: true
+                }
+            }
+        }, { addRequiredStyles, addToolbarStyles });
+
+        // Log initialization status
+        console.log('Floating toolbars initialized. Try selecting text in each editor.');
+    </script>
+</body>
+</html>
