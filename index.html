@@ -214,15 +214,14 @@
 
 
     <script type="module">
-        // Import the utilities
+        import { FloatingToolbar } from './script.js';
         import * as utils from './dist/utils.js';
         import { addRequiredStyles, addToolbarStyles } from './dist/dom.js';
-        import { FloatingToolbar } from './script.js';
         
-        // Make them available to the global scope for script.js to use
+        // Make required utilities available to the global scope
+        window.findClosestLink = utils.findClosestLink;
         window.isValidUrl = utils.isValidUrl;
         window.ensureValidUrl = utils.ensureValidUrl;
-        window.findClosestLink = utils.findClosestLink;
         
         // Initialize toolbars
         // Dark Theme Floating Toolbar
@@ -263,9 +262,10 @@
         window.lightToolbar = new FloatingToolbar({
             container: '#light-editor',
             content: '.light-content',
-            mode: 'floating',  // Key setting for floating behavior
+            mode: 'floating',
             theme: 'light',
             debug: true,
+            offset: { x: 0, y: 10 },
             toolbarId: 'light-toolbar',
             buttons: {
                 text: {
@@ -278,15 +278,13 @@
                     h1: true,
                     h2: true
                 },
+                special: {
+                    code: true,
+                    quote: true
+                },
                 list: {
                     bullet: true,
                     number: true
-                },
-                special: {
-                    dropCap: true,
-                    code: true,
-                    quote: true,
-                    hr: true
                 },
                 link: {
                     url: true
@@ -294,13 +292,14 @@
             }
         }, { addRequiredStyles, addToolbarStyles });
 
-        // Custom Theme Floating Toolbar (with limited buttons)
+        // Custom Theme Floating Toolbar
         window.themedToolbar = new FloatingToolbar({
             container: '#themed-editor',
             content: '.themed-content',
-            mode: 'floating',  // Key setting for floating behavior
+            mode: 'floating',
             theme: 'custom',
             debug: true,
+            offset: { x: 0, y: 10 },
             toolbarId: 'themed-toolbar',
             buttons: {
                 text: {
@@ -308,14 +307,15 @@
                     italic: true,
                     underline: true
                 },
+                special: {
+                    code: true,
+                    quote: true
+                },
                 link: {
                     url: true
                 }
             }
         }, { addRequiredStyles, addToolbarStyles });
-
-        // Log initialization status
-        console.log('Floating toolbars initialized. Try selecting text in each editor.');
     </script>
 </body>
 </html>
