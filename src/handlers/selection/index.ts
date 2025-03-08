@@ -13,7 +13,7 @@ export interface SelectionHandlerContext {
 
 export function handleSelection(
     this: SelectionHandlerContext,
-    event: MouseEvent | KeyboardEvent
+    event: MouseEvent | KeyboardEvent | Event
 ): void {
     const contentArea = document.querySelector<HTMLElement>(this.config.selector || this.config.content);
     if (!contentArea) return;
@@ -23,6 +23,7 @@ export function handleSelection(
         toolbarId: this.config.toolbarId,
         contentSelector: this.config.selector || this.config.content,
         isFixed: this.state.isFixed,
+        eventType: event.type,
         allToolbars: Array.from(document.querySelectorAll('.floating-toolbar')).map(t => t.id)
     });
 
@@ -52,13 +53,11 @@ export function handleSelection(
         });
     }
 
-    // Ignore clicks on the toolbar
+    // If clicking on the toolbar, preserve the current state
     if (this.elements.toolbar && 'type' in event && event.type === 'mouseup' && 
-        this.elements.toolbar.contains(event.target as Node)) return;
-
-    // Don't interfere with link button processing
-    if (this.state.isProcessingLinkClick) {
-        this.debug("Ignoring selection event during link processing");
+        this.elements.toolbar.contains(event.target as Node)) {
+        this.debug('Preserving state for toolbar click');
+        // Keep the current selection and visibility state
         return;
     }
 
@@ -67,28 +66,50 @@ export function handleSelection(
     
     const selectedText = selection.toString().trim();
 
-    // Check if the click is outside the content area and toolbar
-    const clickedOutside = 'type' in event && event.type === 'mouseup' && 
-        this.elements.toolbar && !this.elements.toolbar.contains(event.target as Node) && 
-        !contentArea.contains(event.target as Node);
+    // Add detailed debug logging
+    this.debug('Selection state', {
+        eventType: event.type,
+        selectedText,
+        isProcessingLink: this.state.isProcessingLinkClick,
+        hasExistingLink: !!this.state.existingLink,
+        currentView: this.state.currentView,
+        isVisible: this.state.isVisible,
+        currentSelection: !!this.state.currentSelection,
+        selectionRange: !!this.state.selectionRange
+    });
 
-    if (clickedOutside) {
+    // Only handle selection clearing if we're not processing a link and not clicking the toolbar
+    if (!selectedText && !this.state.isProcessingLinkClick && 
+        !(this.elements.toolbar && 'target' in event && this.elements.toolbar.contains(event.target as Node))) {
+        
+        // Don't clear if we have an existing link and we're in link input view
+        if (this.state.existingLink && this.state.currentView === 'linkInput') {
+            this.debug('Preserving state for existing link');
+            return;
+        }
+        
         // Clear selection state
         this.state.currentSelection = null;
         this.state.selectedText = '';
         this.state.selectionRange = null;
-        this.state.isVisible = this.state.isFixed;
+        this.state.isVisible = false;
         this.state.existingLink = null;
         this.state.currentView = 'initial';
         this.clearFormatButtonStates();
         
-        // Remove width constraint when returning to fixed position
+        // Remove width constraint and hide toolbar
         if (this.elements.toolbar) {
             this.elements.toolbar.style.removeProperty('--toolbar-width');
             this.elements.toolbar.classList.remove('following-selection');
+            this.elements.toolbar.classList.remove('visible');
         }
         
         this.updateView();
+    }
+
+    // Don't update selection state if processing link click
+    if (this.state.isProcessingLinkClick) {
+        this.debug("Preserving selection state during link processing");
         return;
     }
 
@@ -106,7 +127,6 @@ export function handleSelection(
         }
 
         this.state.selectionRect = range.getBoundingClientRect();
-        
         this.state.currentSelection = selection;
         this.state.selectedText = selectedText;
         this.state.selectionRange = range.cloneRange();
@@ -120,6 +140,10 @@ export function handleSelection(
             if (this.elements.linkInput) {
                 this.elements.linkInput.value = existingLink.href;
             }
+            // Ensure toolbar stays visible for existing links
+            if (this.elements.toolbar) {
+                this.elements.toolbar.classList.add('visible');
+            }
         } else {
             this.state.existingLink = null;
             this.state.currentView = 'initial';
@@ -131,23 +155,12 @@ export function handleSelection(
         // Add following-selection class to maintain width
         if (this.elements.toolbar) {
             this.elements.toolbar.classList.add('following-selection');
+            this.elements.toolbar.classList.add('visible');
         }
 
-    } else if (this.elements.toolbar && !this.elements.toolbar.contains(event.target as Node)) {
-        this.state.currentSelection = null;
-        this.state.selectedText = '';
-        this.state.selectionRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-        this.state.isVisible = this.state.isFixed;
-        this.state.existingLink = null;
-        if (!this.state.isProcessingLinkClick) {
-            this.state.currentView = 'initial';
-        }
-        
-        // Remove width constraint when no selection
-        if (this.elements.toolbar) {
-            this.elements.toolbar.style.removeProperty('--toolbar-width');
-            this.elements.toolbar.classList.remove('following-selection');
-        }
+        this.updateFormatButtonStates();
+        this.updateView();
+        return;
     }
 
     this.updateFormatButtonStates();

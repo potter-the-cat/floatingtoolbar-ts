@@ -198,6 +198,11 @@ export function setupEventListeners(
             config.element.addEventListener('click', () => handlers.handleFormat(format));
         }
     });
+
+    // Selection handling
+    document.addEventListener('mouseup', handlers.handleSelection);
+    document.addEventListener('keyup', handlers.handleSelection);
+    document.addEventListener('selectionchange', handlers.handleSelection);
 }
 
 export function destroyEventListeners(
