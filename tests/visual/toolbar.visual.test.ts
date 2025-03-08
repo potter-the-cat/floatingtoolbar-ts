@@ -363,7 +363,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
 
         // Scroll to top first to ensure consistent starting position
         await page.evaluate(() => window.scrollTo(0, 0));
-        await page.waitForTimeout(500); // Increased wait time for scroll to settle
+        await page.waitForTimeout(100);
 
         // Select text in the first paragraph (after the spacer)
         await editor.evaluate((el) => {
@@ -397,7 +397,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toBeVisible({ timeout: 10000 });
         
         // Wait for initial positioning to settle
-        await page.waitForTimeout(1000); // Increased wait time
+        await page.waitForTimeout(500);
         
         // Take screenshot of initial position (showing full viewport)
         await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-before-scroll.png' });
@@ -412,14 +412,13 @@ test.describe('Floating Toolbar Visual Tests', () => {
         
         if (!initialSelectionPos) throw new Error('Could not get selection position');
         
-        // Scroll down further to ensure the toolbar moves below the text
+        // Scroll down until the selection is near the top of the viewport
         await page.evaluate(async () => {
             const selection = window.getSelection();
             if (!selection || !selection.rangeCount) return;
             const range = selection.getRangeAt(0);
             const rect = range.getBoundingClientRect();
-            // Scroll more aggressively to ensure the selection is well above the viewport center
-            const scrollAmount = window.pageYOffset + rect.top - 20; // Only leave 20px at top
+            const scrollAmount = window.pageYOffset + rect.top - 50; // Leave 50px at top
             
             window.scrollTo({
                 top: scrollAmount,
@@ -427,8 +426,8 @@ test.describe('Floating Toolbar Visual Tests', () => {
             });
         });
         
-        // Wait longer for position change animation and layout updates
-        await page.waitForTimeout(1500);
+        // Wait for position change animation
+        await page.waitForTimeout(500);
         
         // Take screenshot of final position (showing full viewport)
         await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-after-scroll.png' });
