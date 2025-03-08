@@ -336,4 +336,118 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(visitButton).toHaveCSS('display', 'flex');
         await expect(toolbar).toHaveScreenshot('link-input-valid-url.png');
     });
+
+    test('Toolbar switches position when scrolling', async ({ page }) => {
+        // First, we need to inject some tall content to enable scrolling
+        await page.evaluate(() => {
+            const content = document.querySelector('.editable-content') as HTMLElement;
+            if (content) {
+                // Add a spacer at the top to ensure consistent positioning
+                const topSpacer = document.createElement('div');
+                topSpacer.style.height = '200px';
+                content.insertBefore(topSpacer, content.firstChild);
+
+                // Add enough paragraphs to make the page scrollable
+                for (let i = 0; i < 50; i++) {
+                    const p = document.createElement('p');
+                    p.textContent = `Paragraph ${i + 1} - Lorem ipsum dolor sit amet, consectetur adipiscing elit. `.repeat(3);
+                    content.appendChild(p);
+                }
+                // Ensure the content area is tall enough
+                content.style.minHeight = '2000px';
+            }
+        });
+
+        const editor = await page.locator('.editable-content');
+        await editor.waitFor({ state: 'visible' });
+
+        // Scroll to top first to ensure consistent starting position
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.waitForTimeout(500); // Increased wait time for scroll to settle
+
+        // Select text in the first paragraph (after the spacer)
+        await editor.evaluate((el) => {
+            const range = document.createRange();
+            const paragraphs = el.querySelectorAll('p');
+            const firstParagraph = paragraphs[0];
+            if (!firstParagraph) return;
+            
+            range.selectNodeContents(firstParagraph);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: firstParagraph.getBoundingClientRect().left + 10,
+                clientY: firstParagraph.getBoundingClientRect().top + 10
+            });
+            firstParagraph.dispatchEvent(mouseupEvent);
+            
+            const selectionchangeEvent = new Event('selectionchange', {
+                bubbles: true
+            });
+            document.dispatchEvent(selectionchangeEvent);
+        });
+
+        // Wait for toolbar to appear above text
+        const toolbar = await page.locator('#default-toolbar');
+        await expect(toolbar).toBeVisible({ timeout: 10000 });
+        
+        // Wait for initial positioning to settle
+        await page.waitForTimeout(1000); // Increased wait time
+        
+        // Take screenshot of initial position (showing full viewport)
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-before-scroll.png' });
+        
+        // Get the selection's position before scrolling
+        const initialSelectionPos = await page.evaluate(() => {
+            const selection = window.getSelection();
+            if (!selection || !selection.rangeCount) return null;
+            const range = selection.getRangeAt(0);
+            return range.getBoundingClientRect().top;
+        });
+        
+        if (!initialSelectionPos) throw new Error('Could not get selection position');
+        
+        // Scroll down further to ensure the toolbar moves below the text
+        await page.evaluate(async () => {
+            const selection = window.getSelection();
+            if (!selection || !selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            // Scroll more aggressively to ensure the selection is well above the viewport center
+            const scrollAmount = window.pageYOffset + rect.top - 20; // Only leave 20px at top
+            
+            window.scrollTo({
+                top: scrollAmount,
+                behavior: 'instant'
+            });
+        });
+        
+        // Wait longer for position change animation and layout updates
+        await page.waitForTimeout(1500);
+        
+        // Take screenshot of final position (showing full viewport)
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-after-scroll.png' });
+        
+        // Get the selection's position after scrolling
+        const finalSelectionPos = await page.evaluate(() => {
+            const selection = window.getSelection();
+            if (!selection || !selection.rangeCount) return null;
+            const range = selection.getRangeAt(0);
+            return range.getBoundingClientRect().top;
+        });
+        
+        if (!finalSelectionPos) throw new Error('Could not get final selection position');
+        
+        // Verify the selection has moved up in the viewport
+        expect(finalSelectionPos).toBeLessThan(initialSelectionPos);
+        
+        // Verify the toolbar has the correct classes
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+    });
 }); 
