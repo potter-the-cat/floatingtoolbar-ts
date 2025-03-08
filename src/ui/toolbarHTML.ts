@@ -27,6 +27,16 @@ export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): s
                             <span class="material-icons" data-icon="format_strikethrough">format_strikethrough</span>
                         </button>
                     ` : ''}
+                    ${config.buttons.script?.subscript ? `
+                        <button id="${config.toolbarId}-subscript-button" title="Subscript">
+                            <span class="material-icons" data-icon="subscript">subscript</span>
+                        </button>
+                    ` : ''}
+                    ${config.buttons.script?.superscript ? `
+                        <button id="${config.toolbarId}-superscript-button" title="Superscript">
+                            <span class="material-icons" data-icon="superscript">superscript</span>
+                        </button>
+                    ` : ''}
                 </div>
                 
                 <!-- Headings group -->
