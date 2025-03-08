@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { findClosestLink, isValidUrl, ensureValidUrl } from '../utils/link';
 
 describe('Link Utilities', () => {
