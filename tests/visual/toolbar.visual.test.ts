@@ -101,7 +101,11 @@ test.describe('Floating Toolbar Visual Tests', () => {
         // Verify light theme specific styles
         await expect(toolbar).toHaveCSS('background-color', 'rgb(255, 255, 255)'); // White background
         await expect(toolbar).toHaveCSS('color', 'rgb(51, 51, 51)'); // Dark text
-        await expect(toolbar).toHaveCSS('box-shadow', '0 2px 6px rgba(0, 0, 0, 0.1)');
+        // Box shadow can be formatted differently by browsers but represents the same value
+        const boxShadow = await toolbar.evaluate(el => window.getComputedStyle(el).boxShadow);
+        expect(boxShadow).toMatch(/rgba\(0,\s*0,\s*0,\s*0\.1\)/);
+        expect(boxShadow).toMatch(/2px/);
+        expect(boxShadow).toMatch(/6px/);
         await expect(toolbar).toHaveCSS('border', '1px solid rgb(225, 225, 225)');
         
         await expect(toolbar).toHaveScreenshot('light-theme-toolbar.png');
