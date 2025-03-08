@@ -176,14 +176,8 @@ export function handleCode(
         while (node && node.nodeType) {
             if (node.nodeType === 1) {
                 const element = node as HTMLElement;
-                // Check if this is a code element
                 if (element.tagName === 'CODE') {
                     return element;
-                }
-                // Check if there's a code element within the children
-                const codeElements = element.getElementsByTagName('code');
-                if (codeElements.length > 0) {
-                    return codeElements[0];
                 }
             }
             node = node.parentNode;
@@ -231,18 +225,27 @@ export function handleCode(
         this.debug('Adding code formatting to', {
             selectedText: selection.toString()
         });
+        
         // Create new code element
         const codeElement = document.createElement('code');
-        range.surroundContents(codeElement);
         
-        // Update stored range to include the code element
-        const newRange = document.createRange();
-        newRange.selectNode(codeElement);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-        
-        // Update stored range
-        this.state.selectionRange = newRange.cloneRange();
+        try {
+            // Extract the selected content
+            const fragment = range.extractContents();
+            codeElement.appendChild(fragment);
+            range.insertNode(codeElement);
+            
+            // Update selection to include the code element
+            const newRange = document.createRange();
+            newRange.selectNodeContents(codeElement);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+            
+            // Update stored range
+            this.state.selectionRange = newRange.cloneRange();
+        } catch (error) {
+            console.error('Error applying code formatting:', error);
+        }
     }
 
     // Update format button states
