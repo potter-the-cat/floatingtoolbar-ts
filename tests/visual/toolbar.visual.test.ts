@@ -268,4 +268,72 @@ test.describe('Floating Toolbar Visual Tests', () => {
         
         await expect(toolbar).toHaveScreenshot('link-input-view.png');
     });
+
+    test('Link validation shows/hides visit button appropriately', async ({ page }) => {
+        const editor = await page.locator('.editable-content');
+        
+        // Wait for editor to be ready
+        await editor.waitFor({ state: 'visible' });
+        
+        // Select some text
+        await editor.evaluate((el) => {
+            // Create a range and select the first paragraph
+            const range = document.createRange();
+            const firstParagraph = el.querySelector('p');
+            if (!firstParagraph) return;
+            
+            range.selectNodeContents(firstParagraph);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Create and dispatch mouseup event
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: firstParagraph.getBoundingClientRect().left + 10,
+                clientY: firstParagraph.getBoundingClientRect().top + 10
+            });
+            firstParagraph.dispatchEvent(mouseupEvent);
+            
+            // Create and dispatch selectionchange event
+            const selectionchangeEvent = new Event('selectionchange', {
+                bubbles: true
+            });
+            document.dispatchEvent(selectionchangeEvent);
+        });
+
+        const toolbar = await page.locator('#default-toolbar');
+        await expect(toolbar).toBeVisible({ timeout: 10000 });
+
+        // Click the link button to show link input
+        const linkButton = await page.locator('#default-toolbar-link-button');
+        await expect(linkButton).toBeVisible();
+        await linkButton.click();
+        
+        // Wait for link input to appear
+        await page.waitForTimeout(100);
+        
+        // Get the input field and visit button
+        const inputField = await toolbar.locator('.toolbar-link-input input');
+        const visitButton = await toolbar.locator('#default-toolbar-visit-link');
+        
+        // Test invalid URL
+        await inputField.fill('g');
+        await page.waitForTimeout(100); // Wait for validation
+        await expect(visitButton).toHaveCSS('display', 'none');
+        await expect(toolbar).toHaveScreenshot('link-input-invalid-url.png');
+        
+        // Test partial URL
+        await inputField.fill('example');
+        await page.waitForTimeout(100); // Wait for validation
+        await expect(visitButton).toHaveCSS('display', 'none');
+        
+        // Test valid URL
+        await inputField.fill('https://example.com');
+        await page.waitForTimeout(100); // Wait for validation
+        await expect(visitButton).toHaveCSS('display', 'flex');
+        await expect(toolbar).toHaveScreenshot('link-input-valid-url.png');
+    });
 }); 
