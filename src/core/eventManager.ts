@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements, ButtonConfigs, FormatType } from './types';
+import { ToolbarConfig, ToolbarState, ToolbarElements, ButtonConfigs, FormatType, ButtonElement, ButtonElements } from './types';
 
 interface EventHandlers {
     handleSelection: (e: Event) => void;
@@ -166,7 +166,7 @@ export function setupEventListeners(
     }
 
     // Add formatting button event listeners based on configuration
-    const buttonConfig: ButtonConfigs = {
+    const buttonConfig: ButtonElements = {
         // Text formatting
         bold: { element: elements.boldButton, enabled: config.buttons.text?.bold },
         italic: { element: elements.italicButton, enabled: config.buttons.text?.italic },
@@ -193,7 +193,7 @@ export function setupEventListeners(
     };
 
     // Add event listeners only for enabled buttons that exist in the DOM
-    (Object.entries(buttonConfig) as Array<[FormatType, ButtonConfigs[FormatType]]>).forEach(([format, config]) => {
+    (Object.entries(buttonConfig) as Array<[FormatType, ButtonElement]>).forEach(([format, config]) => {
         if (config.enabled && config.element) {
             config.element.addEventListener('click', () => handlers.handleFormat(format));
         }

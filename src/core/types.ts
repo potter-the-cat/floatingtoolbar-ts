@@ -109,8 +109,33 @@ export interface ToolbarElements {
 }
 
 export interface ButtonConfig {
-    element: HTMLButtonElement | null;
-    enabled: boolean | undefined;
+    text: {
+        bold: boolean;
+        italic: boolean;
+        underline: boolean;
+        strikethrough: boolean;
+    };
+    script: {
+        subscript: boolean;
+        superscript: boolean;
+    };
+    heading: {
+        h1: boolean;
+        h2: boolean;
+    };
+    special: {
+        dropCap: boolean;
+        code: boolean;
+        quote: boolean;
+        hr: boolean;
+    };
+    list: {
+        bullet: boolean;
+        number: boolean;
+    };
+    link: {
+        url: boolean;
+    };
 }
 
 export type ButtonConfigs = Record<FormatType, ButtonConfig>;
@@ -212,3 +237,31 @@ export interface FormatHandlerContext extends BaseHandlerContext {
 export interface InitializeContext extends BaseHandlerContext {
     resetToolbar: () => void;
 }
+
+export interface PositionConfig {
+    offset: { x: number; y: number };
+    fixedPosition: {
+        top: number;
+        center: boolean;
+    };
+}
+
+export interface FloatingToolbarConfig extends ToolbarConfig {
+    container: string;
+    content: string;
+    mode: 'floating' | 'fixed';
+    theme: 'dark' | 'light';
+    debug: boolean;
+    useExistingToolbar: boolean;
+    buttons: ButtonConfig;
+    selector?: string;
+    toolbarId: string;
+    resizeDebounceMs: number;
+}
+
+export interface ButtonElement {
+    element: HTMLButtonElement | null;
+    enabled: boolean | undefined;
+}
+
+export type ButtonElements = Record<FormatType, ButtonElement>;

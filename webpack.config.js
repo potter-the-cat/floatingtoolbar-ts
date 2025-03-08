@@ -6,9 +6,12 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'FloatingToolbar.js',
-    library: 'FloatingToolbar',
-    libraryTarget: 'umd',
-    globalObject: 'this'
+    library: {
+      name: 'FloatingToolbar',
+      type: 'window',
+      export: 'default'
+    },
+    globalObject: 'window'
   },
   module: {
     rules: [

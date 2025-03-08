@@ -155,101 +155,109 @@
     <!-- Load the toolbar -->
     <script src="dist/FloatingToolbar.js"></script>
     <script>
-        // Initialize toolbars
-        window.defaultToolbar = new FloatingToolbar.default({
-            container: '#floating-editor',
-            content: '.editable-content',
-            mode: 'floating',
-            theme: 'dark',
-            debug: true,
-            offset: { x: 0, y: 10 },
-            toolbarId: 'default-toolbar',
-            buttons: {
-                text: {
-                    bold: true,
-                    italic: true,
-                    underline: true,
-                    strikethrough: true
-                },
-                script: {
-                    subscript: true,
-                    superscript: true
-                },
-                heading: {
-                    h1: true,
-                    h2: true
-                },
-                special: {
-                    dropCap: true,
-                    code: true,
-                    quote: true,
-                    hr: true
-                },
-                list: {
-                    bullet: true,
-                    number: true
-                },
-                link: {
-                    url: true
-                }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ensure FloatingToolbar is available
+            if (!window.FloatingToolbar || !window.FloatingToolbar.init) {
+                console.error('FloatingToolbar not loaded properly');
+                return;
             }
-        });
 
-        window.lightToolbar = new FloatingToolbar.default({
-            container: '#light-editor',
-            content: '.light-content',
-            mode: 'floating',
-            theme: 'light',
-            debug: true,
-            offset: { x: 0, y: 10 },
-            toolbarId: 'light-toolbar',
-            buttons: {
-                text: {
-                    bold: true,
-                    italic: true,
-                    underline: true,
-                    strikethrough: true
-                },
-                heading: {
-                    h1: true,
-                    h2: true
-                },
-                special: {
-                    code: true,
-                    quote: true
-                },
-                list: {
-                    bullet: true,
-                    number: true
-                },
-                link: {
-                    url: true
+            // Initialize toolbars
+            window.FloatingToolbar.init({
+                container: '#floating-editor',
+                content: '.editable-content',
+                mode: 'floating',
+                theme: 'dark',
+                debug: true,
+                offset: { x: 0, y: 10 },
+                toolbarId: 'default-toolbar',
+                buttons: {
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true,
+                        strikethrough: true
+                    },
+                    script: {
+                        subscript: true,
+                        superscript: true
+                    },
+                    heading: {
+                        h1: true,
+                        h2: true
+                    },
+                    special: {
+                        dropCap: true,
+                        code: true,
+                        quote: true,
+                        hr: true
+                    },
+                    list: {
+                        bullet: true,
+                        number: true
+                    },
+                    link: {
+                        url: true
+                    }
                 }
-            }
-        });
+            });
 
-        window.themedToolbar = new FloatingToolbar.default({
-            container: '#themed-editor',
-            content: '.themed-content',
-            mode: 'floating',
-            theme: 'custom',
-            debug: true,
-            offset: { x: 0, y: 10 },
-            toolbarId: 'themed-toolbar',
-            buttons: {
-                text: {
-                    bold: true,
-                    italic: true,
-                    underline: true
-                },
-                special: {
-                    code: true,
-                    quote: true
-                },
-                link: {
-                    url: true
+            window.FloatingToolbar.init({
+                container: '#light-editor',
+                content: '.light-content',
+                mode: 'floating',
+                theme: 'light',
+                debug: true,
+                offset: { x: 0, y: 10 },
+                toolbarId: 'light-toolbar',
+                buttons: {
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true,
+                        strikethrough: true
+                    },
+                    heading: {
+                        h1: true,
+                        h2: true
+                    },
+                    special: {
+                        code: true,
+                        quote: true
+                    },
+                    list: {
+                        bullet: true,
+                        number: true
+                    },
+                    link: {
+                        url: true
+                    }
                 }
-            }
+            });
+
+            window.FloatingToolbar.init({
+                container: '#themed-editor',
+                content: '.themed-content',
+                mode: 'floating',
+                theme: 'custom',
+                debug: true,
+                offset: { x: 0, y: 10 },
+                toolbarId: 'themed-toolbar',
+                buttons: {
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true
+                    },
+                    special: {
+                        code: true,
+                        quote: true
+                    },
+                    link: {
+                        url: true
+                    }
+                }
+            });
         });
     </script>
 </body>
