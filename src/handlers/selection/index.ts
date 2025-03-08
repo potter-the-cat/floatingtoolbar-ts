@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../core/types.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../core/types';
 
 export interface SelectionHandlerContext {
     config: ToolbarConfig;

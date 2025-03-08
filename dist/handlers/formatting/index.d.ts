@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements, FormatType } from '../../core/types.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements, FormatType } from '../../core/types';
 export interface FormatHandlerContext {
     config: ToolbarConfig;
     state: ToolbarState;

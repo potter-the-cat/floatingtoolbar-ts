@@ -225,22 +225,32 @@ export function updateView() {
         if (this.elements.toolbarInitial) {
             this.elements.toolbarInitial.style.display = 'flex';
         }
-        if (this.elements.toolbarLinkInput && this.elements.linkInput) {
+        if (this.elements.toolbarLinkInput) {
+            this.elements.toolbarLinkInput.classList.remove('active');
             this.elements.toolbarLinkInput.style.display = 'none';
-            // Reset link input state only if it exists
-            this.elements.linkInput.disabled = false;
-            this.elements.linkInput.style.pointerEvents = 'auto';
+            if (this.elements.linkInput) {
+                this.elements.linkInput.disabled = false;
+                this.elements.linkInput.style.pointerEvents = 'auto';
+            }
         }
     }
     else if (this.state.currentView === 'linkInput' && this.elements.toolbarLinkInput) {
         if (this.elements.toolbarInitial) {
             this.elements.toolbarInitial.style.display = 'none';
         }
-        if (this.elements.toolbarLinkInput && this.elements.linkInput) {
+        if (this.elements.toolbarLinkInput) {
+            this.elements.toolbarLinkInput.classList.add('active');
             this.elements.toolbarLinkInput.style.display = 'flex';
-            // Ensure link input is enabled and focusable
-            this.elements.linkInput.disabled = false;
-            this.elements.linkInput.style.pointerEvents = 'auto';
+            if (this.elements.linkInput) {
+                this.elements.linkInput.disabled = false;
+                this.elements.linkInput.style.pointerEvents = 'auto';
+                // Focus the input after a short delay to ensure it's visible
+                setTimeout(() => {
+                    if (this.elements.linkInput) {
+                        this.elements.linkInput.focus();
+                    }
+                }, 50);
+            }
             // Show/hide remove button based on whether we're editing an existing link
             if (this.elements.removeLink) {
                 this.elements.removeLink.style.display = this.state.existingLink ? 'flex' : 'none';

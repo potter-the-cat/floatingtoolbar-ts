@@ -1,27 +1,9 @@
 import { FloatingToolbar } from './core/FloatingToolbar.js';
-// Add global utility functions
-window.ensureValidUrl = (url) => {
-    if (!url)
-        return '';
-    return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-};
-window.isValidUrl = (url) => {
-    if (!url)
-        return false;
-    try {
-        new URL(window.ensureValidUrl(url));
-        return true;
-    }
-    catch {
-        return false;
-    }
-};
-window.findClosestLink = (node) => {
-    while (node && node.nodeName !== 'A') {
-        node = node.parentNode;
-    }
-    return node;
-};
+import { findClosestLink, isValidUrl, ensureValidUrl } from './utils/link.js';
+// Add global utility functions using our robust implementations
+window.findClosestLink = findClosestLink;
+window.isValidUrl = isValidUrl;
+window.ensureValidUrl = ensureValidUrl;
 // Export the FloatingToolbar class
 export { FloatingToolbar };
 export default FloatingToolbar;

@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from './types.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements, SelectionHandlerContext, LinkHandlerContext, FormatHandlerContext, InitializeContext } from './types';
 interface ButtonConfig {
     text: {
         bold: boolean;
@@ -44,7 +44,7 @@ interface StyleOptions {
     addRequiredStyles?: () => void;
     addToolbarStyles?: () => void;
 }
-export declare class FloatingToolbar {
+export declare class FloatingToolbar implements SelectionHandlerContext, LinkHandlerContext, FormatHandlerContext, InitializeContext {
     config: FloatingToolbarConfig;
     state: ToolbarState;
     elements: ToolbarElements;
@@ -65,10 +65,9 @@ export declare class FloatingToolbar {
     updateView: () => void;
     checkForExistingLink: (selection: Selection) => HTMLAnchorElement | null;
     initialize: () => void;
+    resetToolbar: () => void;
     constructor(config?: Partial<FloatingToolbarConfig>, { addRequiredStyles, addToolbarStyles }?: StyleOptions);
     updatePosition(): void;
-    debug(message: string, data?: any): void;
-    destroy(): void;
-    resetToolbar(): void;
+    debug(...args: any[]): void;
 }
 export {};

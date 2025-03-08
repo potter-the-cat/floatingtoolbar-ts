@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState } from '../core/types.js';
+import { ToolbarConfig, ToolbarState } from '../core/types';
 
 export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): string {
     const themeClass = config.theme ? `theme-${config.theme}` : 'theme-dark';

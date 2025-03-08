@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../core/types.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../core/types';
 
 export interface LinkHandlerContext {
     config: ToolbarConfig;

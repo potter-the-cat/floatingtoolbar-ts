@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from './types.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from './types';
 export interface InitializeContext {
     config: ToolbarConfig;
     state: ToolbarState;

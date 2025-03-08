@@ -1,12 +1,10 @@
-import { FloatingToolbar } from './core/FloatingToolbar.js';
-import type { FloatingToolbarConfig, StyleOptions } from './core/config.js';
+import { FloatingToolbar } from './core/FloatingToolbar';
 declare global {
     interface Window {
-        ensureValidUrl: (url: string) => string;
-        isValidUrl: (url: string) => boolean;
         findClosestLink: (node: Node | null) => HTMLAnchorElement | null;
+        isValidUrl: (url: string) => boolean;
+        ensureValidUrl: (url: string) => string;
     }
 }
-export type { FloatingToolbarConfig, StyleOptions };
 export { FloatingToolbar };
 export default FloatingToolbar;

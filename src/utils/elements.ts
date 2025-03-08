@@ -1,4 +1,4 @@
-import { ToolbarConfig, ToolbarElements } from '../core/types.js';
+import { ToolbarConfig, ToolbarElements } from '../core/types';
 
 export function cacheElements(
     config: ToolbarConfig,

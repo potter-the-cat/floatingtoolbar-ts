@@ -1,4 +1,4 @@
-import { requiredStyles } from '../ui/styles.js';
+import { requiredStyles } from '../ui/styles';
 
 /**
  * Find the closest element matching a selector

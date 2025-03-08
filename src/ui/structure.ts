@@ -1,5 +1,5 @@
-import { ToolbarConfig, ToolbarState } from '../core/types.js';
-import { createToolbarHTML } from './toolbarHTML.js';
+import { ToolbarConfig, ToolbarState } from '../core/types';
+import { createToolbarHTML } from './toolbarHTML';
 
 export function setupStructure(
     targetElement: HTMLElement,

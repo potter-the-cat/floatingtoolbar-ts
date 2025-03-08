@@ -1,10 +1,10 @@
-import { createToolbarHTML } from '../ui/toolbarHTML.js';
-import { setupEventListeners, destroyEventListeners } from './eventManager.js';
-import { updatePosition, resetToolbar, updateView } from '../ui/positioning.js';
-import { cacheElements } from '../utils/elements.js';
-import { setupStructure } from '../ui/structure.js';
-import { initialize } from './initialize.js';
-import { handleSelection, hasSelection } from '../handlers/selection/index.js';
+import { createToolbarHTML } from '../ui/toolbarHTML';
+import { setupEventListeners, destroyEventListeners } from './eventManager';
+import { updatePosition, resetToolbar, updateView } from '../ui/positioning';
+import { cacheElements } from '../utils/elements';
+import { setupStructure } from '../ui/structure';
+import { initialize } from './initialize';
+import { handleSelection, hasSelection } from '../handlers/selection';
 import { 
     handleLinkButtonClick, 
     handleSaveLinkClick, 
@@ -14,13 +14,22 @@ import {
     handleVisitLinkClick,
     updateVisitButton,
     checkForExistingLink
-} from '../handlers/link/index.js';
+} from '../handlers/link';
 import { 
     handleFormat, 
     updateFormatButtonStates, 
     clearFormatButtonStates
-} from '../handlers/formatting/index.js';
-import { ToolbarConfig, ToolbarState, ToolbarElements, FormatType } from './types.js';
+} from '../handlers/formatting';
+import { 
+    ToolbarConfig, 
+    ToolbarState, 
+    ToolbarElements, 
+    FormatType,
+    SelectionHandlerContext,
+    LinkHandlerContext,
+    FormatHandlerContext,
+    InitializeContext
+} from './types';
 
 interface ButtonConfig {
     text: {
@@ -78,7 +87,7 @@ interface StyleOptions {
     addToolbarStyles?: () => void;
 }
 
-export class FloatingToolbar {
+export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerContext, FormatHandlerContext, InitializeContext {
     public config: FloatingToolbarConfig;
     public state: ToolbarState;
     public elements: ToolbarElements;
@@ -101,6 +110,7 @@ export class FloatingToolbar {
     public updateView: () => void;
     public checkForExistingLink: (selection: Selection) => HTMLAnchorElement | null;
     public initialize: () => void;
+    public resetToolbar: () => void;
 
     constructor(config: Partial<FloatingToolbarConfig> = {}, { addRequiredStyles, addToolbarStyles }: StyleOptions = {}) {
         // Store the style functions
@@ -224,6 +234,7 @@ export class FloatingToolbar {
         this.updateView = updateView.bind(this);
         this.checkForExistingLink = checkForExistingLink.bind(this);
         this.initialize = initialize.bind(this);
+        this.resetToolbar = () => resetToolbar(this.state, this.elements, this.clearFormatButtonStates);
 
         // Find target element and set up structure
         const targetElement = document.querySelector(this.config.selector!) as HTMLElement;
@@ -242,42 +253,10 @@ export class FloatingToolbar {
         updatePosition(this.config, this.state, this.elements, this.debug.bind(this));
     }
 
-    // Debug logging utility
-    public debug(message: string, data: any = null): void {
+    // Debug method
+    public debug(...args: any[]): void {
         if (this.config.debug) {
-            if (data) {
-                console.log(`FloatingToolbar Debug - ${message}:`, data);
-            } else {
-                console.log(`FloatingToolbar Debug - ${message}`);
-            }
+            console.log('[FloatingToolbar]', ...args);
         }
     }
-
-    // Public API methods
-    public destroy(): void {
-        destroyEventListeners(
-            this.state,
-            this.elements,
-            {
-                handleSelection: this.handleSelection,
-                handleFormat: this.handleFormat,
-                handleLinkButtonClick: this.handleLinkButtonClick,
-                handleSaveLinkClick: this.handleSaveLinkClick,
-                handleCancelLinkClick: this.handleCancelLinkClick,
-                handleRemoveLinkClick: this.handleRemoveLinkClick,
-                handleVisitLinkClick: this.handleVisitLinkClick,
-                hasSelection: this.hasSelection
-            }
-        );
-    }
-
-    public resetToolbar(): void {
-        if (this.state.isFixed) {
-            resetToolbar(this.state, this.elements, this.clearFormatButtonStates);
-        } else {
-            // For floating toolbars, just hide them
-            this.state.isVisible = false;
-            this.updateView();
-        }
-    }
-}
+} 

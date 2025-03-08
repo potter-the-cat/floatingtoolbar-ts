@@ -152,12 +152,11 @@
         </div>
     </div>
 
-    <script type="module">
-        import { FloatingToolbar } from './dist/index.js';
-        import { ToolbarStyleManager } from './dist/styles/toolbar.js';
-
+    <!-- Load the toolbar -->
+    <script src="dist/FloatingToolbar.js"></script>
+    <script>
         // Initialize toolbars
-        window.defaultToolbar = new FloatingToolbar({
+        window.defaultToolbar = new FloatingToolbar.default({
             container: '#floating-editor',
             content: '.editable-content',
             mode: 'floating',
@@ -196,7 +195,7 @@
             }
         });
 
-        window.lightToolbar = new FloatingToolbar({
+        window.lightToolbar = new FloatingToolbar.default({
             container: '#light-editor',
             content: '.light-content',
             mode: 'floating',
@@ -229,7 +228,7 @@
             }
         });
 
-        window.themedToolbar = new FloatingToolbar({
+        window.themedToolbar = new FloatingToolbar.default({
             container: '#themed-editor',
             content: '.themed-content',
             mode: 'floating',
@@ -252,10 +251,6 @@
                 }
             }
         });
-
-        // Inject styles
-        ToolbarStyleManager.injectRequiredStyles();
-        ToolbarStyleManager.injectToolbarStyles();
     </script>
 </body>
 </html>

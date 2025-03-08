@@ -152,3 +152,25 @@ export interface SelectionState {
     rect: DOMRect | null;
     text: string;
 }
+export interface BaseHandlerContext {
+    config: ToolbarConfig;
+    state: ToolbarState;
+    elements: ToolbarElements;
+    debug: (...args: any[]) => void;
+}
+export interface SelectionHandlerContext extends BaseHandlerContext {
+    updateView: () => void;
+    updatePosition: () => void;
+    resetToolbar: () => void;
+}
+export interface LinkHandlerContext extends BaseHandlerContext {
+    updateView: () => void;
+    updatePosition: () => void;
+}
+export interface FormatHandlerContext extends BaseHandlerContext {
+    updateView: () => void;
+    updatePosition: () => void;
+}
+export interface InitializeContext extends BaseHandlerContext {
+    resetToolbar: () => void;
+}

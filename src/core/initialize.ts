@@ -1,6 +1,6 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from './types.js';
-import { cacheElements } from '../utils/elements.js';
-import { setupEventListeners } from './eventManager.js';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from './types';
+import { cacheElements } from '../utils/elements';
+import { setupEventListeners } from './eventManager';
 
 export interface InitializeContext {
     config: ToolbarConfig;
@@ -25,7 +25,7 @@ export interface InitializeContext {
 export function initialize(
     this: InitializeContext
 ): void {
-    // Add toolbar styles
+    // Add toolbar styles first
     this.addToolbarStyles();
     
     // Cache DOM elements with properly bound debug function
@@ -53,12 +53,13 @@ export function initialize(
     );
     
     // Set initial mode class
-    if (this.state.isFixed && this.elements.toolbar) {
+    if (this.elements.toolbar) {
         this.elements.toolbar.classList.add('floating-toolbar');
-        this.elements.toolbar.classList.add('fixed-position');
-    } else if (this.elements.toolbar) {
-        this.elements.toolbar.classList.add('floating-toolbar');
-        this.elements.toolbar.classList.remove('fixed-position');
+        this.elements.toolbar.classList.toggle('fixed-position', this.state.isFixed);
+        this.elements.toolbar.classList.add(`theme-${this.config.theme}`);
+        
+        // Force a reflow to ensure styles are applied
+        void this.elements.toolbar.offsetHeight;
     }
     
     // Initial state setup

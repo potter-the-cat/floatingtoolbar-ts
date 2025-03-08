@@ -5,18 +5,10 @@ const config: Config.InitialOptions = {
     testEnvironment: 'jsdom',
     roots: ['<rootDir>/src'],
     testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
-    testPathIgnorePatterns: ['/node_modules/', '/tests/visual/'],
     transform: {
-        '^.+\\.tsx?$': ['ts-jest', {
-            tsconfig: {
-                allowJs: true
-            }
-        }]
+        '^.+\\.tsx?$': 'ts-jest'
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-    moduleNameMapper: {
-        '^(.+)\\.js$': '$1'
-    },
     setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
 };
 
