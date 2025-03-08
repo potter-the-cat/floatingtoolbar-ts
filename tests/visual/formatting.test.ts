@@ -17,10 +17,26 @@ test.describe('Text Formatting Visual Tests', () => {
         });
     });
 
+    // Helper function to clear all states
+    const clearStates = async (page) => {
+        await page.mouse.move(-200, -200);
+        await page.waitForTimeout(500);
+        await page.evaluate(() => {
+            const activeElement = document.activeElement;
+            if (activeElement instanceof HTMLElement) {
+                activeElement.blur();
+            }
+        });
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(100);
+        await page.keyboard.up('Escape');
+        await page.waitForTimeout(100);
+    };
+
     // Helper function to check button states
     const checkButtonStates = async (page) => {
         return await page.evaluate(() => {
-            const buttons = ['bold', 'italic', 'underline', 'strikethrough'] as const;
+            const buttons = ['bold', 'italic', 'underline', 'strikethrough', 'drop-cap'] as const;
             const states: Record<string, { classes: string; commandState: boolean; id: string; computedStyles: any }> = {};
             
             buttons.forEach(format => {
@@ -63,19 +79,6 @@ test.describe('Text Formatting Visual Tests', () => {
                             pseudoStates
                         }
                     };
-
-                    // Log detailed state for debugging
-                    console.log(`\nDetailed state for ${format} button:`, {
-                        element: button.outerHTML,
-                        computedStyles: relevantStyles,
-                        pseudoStates,
-                        parentComputedStyle: window.getComputedStyle(button.parentElement as Element),
-                        toolbarState: {
-                            classes: document.querySelector('#default-toolbar')?.classList.toString(),
-                            visible: document.querySelector('#default-toolbar')?.classList.contains('visible'),
-                            computedStyle: window.getComputedStyle(document.querySelector('#default-toolbar') as Element)
-                        }
-                    });
                 }
             });
             
@@ -109,9 +112,13 @@ test.describe('Text Formatting Visual Tests', () => {
         await page.waitForSelector('#default-toolbar', { state: 'visible' });
         await page.waitForTimeout(100);
 
-        // Capture initial state
+        // Clear states and capture initial state
+        await clearStates(page);
         const initialStates = await checkButtonStates(page);
-        await page.screenshot({ path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-state.png' });
+        await page.screenshot({ 
+            path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-state.png',
+            animations: 'disabled'
+        });
 
         // Test each format
         const formats = [
@@ -134,6 +141,11 @@ test.describe('Text Formatting Visual Tests', () => {
                 name: 'strikethrough', 
                 button: '#default-toolbar-strikethrough-button',
                 text: 'Testing strikethrough formatting on this text.'
+            },
+            {
+                name: 'drop-cap',
+                button: '#default-toolbar-drop-cap-button',
+                text: 'Testing drop cap formatting on this paragraph.'
             }
         ];
 
@@ -171,63 +183,107 @@ test.describe('Text Formatting Visual Tests', () => {
             await page.waitForSelector('#default-toolbar', { state: 'visible' });
             await page.waitForTimeout(100);
 
+            // Clear states and check initial state
+            await clearStates(page);
             console.log('\n--- Initial state ---');
             const initialStates = await checkButtonStates(page);
             console.log('Initial button states:', initialStates);
 
             // Apply formatting
             await page.click(format.button);
-            await page.waitForTimeout(100);
+            await page.waitForTimeout(500);
 
             // Wait for formatting to be applied
-            await page.evaluate((formatType) => {
-                const command = formatType === 'strikethrough' ? 'strikeThrough' : formatType;
-                let attempts = 0;
-                while (!document.queryCommandState(command) && attempts < 10) {
-                    attempts++;
-                }
-                console.log(`Format ${formatType} applied after ${attempts} attempts`);
-            }, format.name);
+            if (format.name !== 'drop-cap') {
+                await page.evaluate((formatType) => {
+                    const command = formatType === 'strikethrough' ? 'strikeThrough' : formatType;
+                    let attempts = 0;
+                    while (!document.queryCommandState(command) && attempts < 10) {
+                        attempts++;
+                    }
+                    console.log(`Format ${formatType} applied after ${attempts} attempts`);
+                }, format.name);
+            } else {
+                // For drop cap, check the class
+                await page.evaluate(() => {
+                    const p = document.querySelector('.editable-content p');
+                    let attempts = 0;
+                    while (!p?.classList.contains('drop-cap') && attempts < 10) {
+                        attempts++;
+                    }
+                    console.log(`Drop cap applied after ${attempts} attempts`);
+                });
+            }
 
+            // Clear states and check applied state
+            await clearStates(page);
             console.log('\n--- Applying format ---');
             const appliedStates = await checkButtonStates(page);
             console.log('States after applying format:', appliedStates);
             
             // Take screenshot after verifying format is applied
-            expect(appliedStates[format.name].commandState).toBe(true);
+            if (format.name !== 'drop-cap') {
+                expect(appliedStates[format.name].commandState).toBe(true);
+            } else {
+                const hasDropCap = await page.evaluate(() => {
+                    const p = document.querySelector('.editable-content p');
+                    return p?.classList.contains('drop-cap') || false;
+                });
+                expect(hasDropCap).toBe(true);
+            }
             expect(appliedStates[format.name].classes).toContain('active');
             
             await page.screenshot({ 
-                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-applied.png` 
+                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-applied.png`,
+                animations: 'disabled'
             });
             
-            console.log('\n--- Removing format ---');
+            // Remove formatting
             await page.click(format.button);
-            await page.waitForTimeout(100);
+            await page.waitForTimeout(500);
 
             // Wait for formatting to be removed
-            await page.evaluate((formatType) => {
-                const command = formatType === 'strikethrough' ? 'strikeThrough' : formatType;
-                let attempts = 0;
-                while (document.queryCommandState(command) && attempts < 10) {
-                    attempts++;
-                }
-                console.log(`Format ${formatType} removed after ${attempts} attempts`);
-            }, format.name);
+            if (format.name !== 'drop-cap') {
+                await page.evaluate((formatType) => {
+                    const command = formatType === 'strikethrough' ? 'strikeThrough' : formatType;
+                    let attempts = 0;
+                    while (document.queryCommandState(command) && attempts < 10) {
+                        attempts++;
+                    }
+                    console.log(`Format ${formatType} removed after ${attempts} attempts`);
+                }, format.name);
+            } else {
+                // For drop cap, check the class is removed
+                await page.evaluate(() => {
+                    const p = document.querySelector('.editable-content p');
+                    let attempts = 0;
+                    while (p?.classList.contains('drop-cap') && attempts < 10) {
+                        attempts++;
+                    }
+                    console.log(`Drop cap removed after ${attempts} attempts`);
+                });
+            }
 
+            // Clear states and check removed state
+            await clearStates(page);
             const removedStates = await checkButtonStates(page);
             console.log('States after removing format:', removedStates);
 
-            // Move mouse away from the button before taking screenshot
-            await page.mouse.move(0, 0);
-            await page.waitForTimeout(100); // Wait for hover state to clear
-
             // Take screenshot after verifying format is removed
-            expect(removedStates[format.name].commandState).toBe(false);
+            if (format.name !== 'drop-cap') {
+                expect(removedStates[format.name].commandState).toBe(false);
+            } else {
+                const hasDropCap = await page.evaluate(() => {
+                    const p = document.querySelector('.editable-content p');
+                    return p?.classList.contains('drop-cap') || false;
+                });
+                expect(hasDropCap).toBe(false);
+            }
             expect(removedStates[format.name].classes).not.toContain('active');
 
             await page.screenshot({ 
-                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-removed.png` 
+                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-removed.png`,
+                animations: 'disabled'
             });
 
             // Verify text is still selected
@@ -289,18 +345,30 @@ test.describe('Text Formatting Visual Tests', () => {
         await page.waitForSelector('#default-toolbar', { state: 'visible' });
         await page.waitForTimeout(100);
 
+        // Clear states before checking
+        await clearStates(page);
+
         // Verify all buttons are inactive
         const states = await checkButtonStates(page);
         for (const [format, state] of Object.entries(states)) {
             if (typeof state === 'object' && state !== null) {
-                expect('commandState' in state && state.commandState).toBe(false);
+                if (format !== 'drop-cap') {
+                    expect('commandState' in state && state.commandState).toBe(false);
+                } else {
+                    const hasDropCap = await page.evaluate(() => {
+                        const p = document.querySelector('.editable-content p');
+                        return p?.classList.contains('drop-cap') || false;
+                    });
+                    expect(hasDropCap).toBe(false);
+                }
                 expect('classes' in state && state.classes).not.toContain('active');
             }
         }
 
         // Take screenshot showing all buttons in their initial state
         await page.screenshot({ 
-            path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-selection.png' 
+            path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-selection.png',
+            animations: 'disabled'
         });
     });
 }); 

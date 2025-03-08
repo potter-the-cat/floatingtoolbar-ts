@@ -127,33 +127,22 @@ export function handleDropCap(
 ): void {
     const selection = window.getSelection();
     if (!selection || !this.state.selectionRange) return;
-    
-    selection.removeAllRanges();
-    selection.addRange(this.state.selectionRange);
 
+    // Get the current node where the cursor or selection is
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
-    
-    // Find the block-level parent (paragraph or div)
-    let blockParent: Node | null = container;
-    while (blockParent && 
-           (blockParent.nodeType !== 1 || 
-            !['P', 'DIV'].includes((blockParent as Element).tagName))) {
-        const nextParent: ParentNode | null = blockParent.parentNode;
-        if (!nextParent) break;
-        blockParent = nextParent as Node;
-    }
+    const element = container.nodeType === 3 ? container.parentElement : container as HTMLElement;
+    if (!element) return;
 
-    if (!blockParent) return;
+    // Find the closest paragraph
+    const paragraph = element.closest('p');
+    if (!paragraph) return;
 
     // Toggle drop cap class
-    const element = blockParent as HTMLElement;
-    if (element.classList.contains('drop-cap')) {
-        element.classList.remove('drop-cap');
-        this.state.dropCapElements.delete(element);
+    if (paragraph.classList.contains('drop-cap')) {
+        paragraph.classList.remove('drop-cap');
     } else {
-        element.classList.add('drop-cap');
-        this.state.dropCapElements.add(element);
+        paragraph.classList.add('drop-cap');
     }
 
     // Update format button states
@@ -404,7 +393,8 @@ export function updateFormatButtonStates(
     
     // Update drop cap button if it exists
     if (this.elements.dropCapButton) {
-        this.elements.dropCapButton.classList.toggle('active', this.state.dropCapElements.has(parentElement as HTMLElement));
+        const paragraph = (parentElement as HTMLElement).closest('p');
+        this.elements.dropCapButton.classList.toggle('active', paragraph?.classList.contains('drop-cap') || false);
     }
 }
 
