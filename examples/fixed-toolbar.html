@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Toolbar Demo</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .toolbar-section {
+            padding-bottom: 4rem;
+            width: 100%;
+            margin-bottom: 0; /* Remove margin since content is now separate */
+        }
+
+        .content-section {
+            padding-top: 2rem;
+            width: 100%;
+            margin-top: 0; /* Remove margin since toolbar is now separate */
+        }
+
+        .content {
+            min-height: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Basic content styling */
+        .content h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .content h2 {
+            color: #444;
+        }
+
+        .content p {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .content blockquote {
+            border-left: 4px solid #ddd;
+            margin: 0;
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .content code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .content hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 20px 0;
+        }
+
+        /* List styles */
+        .content ul, .content ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+            color: #666;
+        }
+
+        .content ul li, .content ol li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .content ul {
+            list-style-type: disc;
+        }
+
+        .content ol {
+            list-style-type: decimal;
+        }
+
+        /* Nested list styles */
+        .content ul ul, .content ol ol,
+        .content ul ol, .content ol ul {
+            margin: 0.5rem 0 0.5rem 1rem;
+        }
+
+        /* Drop cap styles */
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 3.5em;
+            padding: 0.1em 0.1em 0 0;
+            line-height: 0.7;
+            color: #333;
+        }
+
+        /* Toolbar Styles */
+        #floating-toolbar {
+            background: #000000;
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            pointer-events: auto;
+            width: auto;
+            min-width: min-content;
+            will-change: top;
+        }
+
+        /* Chevron styles */
+        #floating-toolbar::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #000000;
+            bottom: -6px;
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: top, bottom;
+        }
+
+        #floating-toolbar.below::after {
+            border-top: none;
+            border-bottom: 6px solid #000000;
+            bottom: auto;
+            top: -6px;
+        }
+
+        /* Style for fixed position at top */
+        #floating-toolbar.fixed-position {
+            white-space: nowrap;
+        }
+
+        /* Style for floating position (when selecting text) */
+        #floating-toolbar:not(.fixed-position) {
+            max-width: min(100vw - 40px, 800px);
+        }
+
+        .toolbar-initial {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+
+        /* Only allow wrapping when floating and space is limited */
+        #floating-toolbar:not(.fixed-position) .toolbar-initial {
+            flex-wrap: wrap;
+            row-gap: 8px;
+        }
+
+        /* Ensure toolbar container spans full width */
+        .toolbar-container {
+            height: 40px;
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Button Styles */
+        #floating-toolbar button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            font-size: 14px;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        #floating-toolbar button .material-icons {
+            font-size: 20px;
+        }
+
+        #floating-toolbar button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #floating-toolbar button.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Link Input Styles */
+        .toolbar-link-input {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            flex-wrap: wrap;
+        }
+
+        #floating-toolbar #link-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            padding: 4px 8px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        #floating-toolbar #link-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <!-- Separate toolbar section -->
+        <div class="toolbar-section">
+            <div class="toolbar-container">
+                <div id="floating-toolbar" class="fixed-position">
+                    <div class="toolbar-initial">
+                        <!-- Text formatting group -->
+                        <div class="toolbar-group">
+                            <button id="bold-button" title="Bold">
+                                <span class="material-icons">format_bold</span>
+                            </button>
+                            <button id="italic-button" title="Italic">
+                                <span class="material-icons">format_italic</span>
+                            </button>
+                            <button id="underline-button" title="Underline">
+                                <span class="material-icons">format_underline</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Headings group -->
+                        <div class="toolbar-group">
+                            <button id="h1-button" title="Heading 1">
+                                <span class="material-icons">looks_one</span>
+                            </button>
+                            <button id="h2-button" title="Heading 2">
+                                <span class="material-icons">looks_two</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Special formatting group -->
+                        <div class="toolbar-group">
+                            <button id="code-button" title="Code">
+                                <span class="material-icons">code</span>
+                            </button>
+                            <button id="quote-button" title="Quote">
+                                <span class="material-icons">format_quote</span>
+                            </button>
+                        </div>
+
+                        <!-- List formatting group -->
+                        <div class="toolbar-group">
+                            <button id="bullet-list-button" title="Bullet List">
+                                <span class="material-icons">format_list_bulleted</span>
+                            </button>
+                            <button id="number-list-button" title="Numbered List">
+                                <span class="material-icons">format_list_numbered</span>
+                            </button>
+                        </div>
+
+                        <!-- Link group -->
+                        <div class="toolbar-group">
+                            <button id="link-button" title="Add Link">
+                                <span class="material-icons">link</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="toolbar-link-input">
+                        <input type="text" id="link-input" placeholder="Enter URL...">
+                        <button id="visit-link" class="toolbar-button" type="button" title="Visit URL">
+                            <span class="material-icons">open_in_new</span>
+                        </button>
+                        <button id="remove-link" class="toolbar-button" type="button" title="Remove link">
+                            <span class="material-icons">delete</span>
+                        </button>
+                        <button id="save-link" class="toolbar-button" type="button" title="Save">
+                            <span class="material-icons">check</span>
+                        </button>
+                        <button id="cancel-link" class="toolbar-button" type="button" title="Cancel">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Separate content section -->
+        <div class="content-section">
+            <div class="content" contenteditable="true">
+                <h1>Fixed Toolbar Demo</h1>
+                <p>This is a demo of the fixed toolbar mode. The toolbar stays at the top until you select text, then it moves to the selection.</p>
+                <p>Here's an example of lists:</p>
+                <ul>
+                    <li>Bullet points are great for:</li>
+                    <ul>
+                        <li>Organizing ideas</li>
+                        <li>Making content scannable</li>
+                        <li>Breaking up text</li>
+                    </ul>
+                </ul>
+                <ol>
+                    <li>Numbered lists work well for:</li>
+                    <li>Step-by-step instructions</li>
+                    <li>Prioritized items</li>
+                    <li>Sequential information</li>
+                </ol>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../dist/FloatingToolbar.js"></script>
+    <script>
+        // Initialize the toolbar when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.FloatingToolbar) {
+                console.error('FloatingToolbar not loaded');
+                return;
+            }
+
+            const toolbar = FloatingToolbar.init({
+                selector: '.content',
+                mode: 'fixed',
+                offset: { x: 0, y: 10 },
+                toolbarId: 'floating-toolbar',
+                debug: false, // Set to true to enable debug logging
+                buttons: {
+                    // Text formatting options
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true,
+                        strikethrough: false  // Hide strikethrough
+                    },
+                    script: {
+                        subscript: false,     // Hide subscript
+                        superscript: false    // Hide superscript
+                    },
+                    heading: {
+                        h1: true,
+                        h2: true
+                    },
+                    special: {
+                        dropCap: false,       // Hide drop cap
+                        code: true,
+                        quote: true,
+                        hr: false             // Hide horizontal rule
+                    },
+                    list: {
+                        bullet: true,
+                        number: true
+                    },
+                    link: {
+                        url: true
+                    }
+                },
+                fixedPosition: {
+                    top: 0,
+                    center: true
+                }
+            });
+        });
+    </script>
+    <!-- Note: Set debug: true in the FloatingToolbar configuration to see debug logs in the console -->
+</body>
+</html> 
