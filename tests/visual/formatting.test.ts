@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Text Formatting Visual Tests', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to the test page
-        await page.goto('http://localhost:3000');
+        await page.goto('http://localhost:3000/examples/floating-toolbar.html');
         
         // Wait for the editor to be ready
         await page.waitForSelector('.editable-content', { state: 'visible' });
