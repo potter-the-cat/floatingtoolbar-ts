@@ -263,3 +263,63 @@ export function addRequiredStyles(): void {
         document.head.appendChild(style);
     }
 }
+
+export const fontStyles = `
+    .floating-toolbar-font-dropdown {
+        position: absolute;
+        background: var(--floating-toolbar-bg);
+        border: 1px solid var(--floating-toolbar-border);
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        min-width: 200px;
+    }
+
+    .floating-toolbar-font-section {
+        padding: 8px 0;
+    }
+
+    .floating-toolbar-font-section:not(:last-child) {
+        border-bottom: 1px solid var(--floating-toolbar-border);
+    }
+
+    .floating-toolbar-font-section-title {
+        padding: 4px 12px;
+        color: var(--floating-toolbar-text-secondary);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .floating-toolbar-font-item {
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 14px;
+    }
+
+    .floating-toolbar-font-item:hover {
+        background-color: var(--floating-toolbar-hover);
+    }
+
+    .floating-toolbar-font-item.active {
+        background-color: var(--floating-toolbar-active);
+        color: var(--floating-toolbar-active-text);
+    }
+
+    .floating-toolbar-button[data-format="font"] {
+        min-width: 100px;
+        text-align: left;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .floating-toolbar-button[data-format="font"]::after {
+        content: "▾";
+        margin-left: 4px;
+        font-size: 10px;
+    }
+`;

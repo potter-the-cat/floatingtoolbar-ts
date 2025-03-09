@@ -189,7 +189,10 @@ export function setupEventListeners(
         
         // Lists
         bulletList: { element: elements.bulletListButton, enabled: config.buttons.list?.bullet },
-        numberList: { element: elements.numberListButton, enabled: config.buttons.list?.number }
+        numberList: { element: elements.numberListButton, enabled: config.buttons.list?.number },
+        
+        // Font selection
+        font: { element: elements.fontButton, enabled: config.buttons.font?.enabled }
     };
 
     // Add event listeners only for enabled buttons that exist in the DOM
@@ -264,7 +267,8 @@ export function destroyEventListeners(
         { element: elements.quoteButton, format: 'quote' },
         { element: elements.hrButton, format: 'hr' },
         { element: elements.bulletListButton, format: 'bulletList' },
-        { element: elements.numberListButton, format: 'numberList' }
+        { element: elements.numberListButton, format: 'numberList' },
+        { element: elements.fontButton, format: 'font' }
     ];
 
     buttonRemovals.forEach(({ element, format }) => {

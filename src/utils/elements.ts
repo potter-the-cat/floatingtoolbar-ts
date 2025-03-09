@@ -12,6 +12,7 @@ export function cacheElements(
         container: document.querySelector('.toolbar-container'),
         toolbarInitial: null,
         toolbarLinkInput: null,
+        toolbarFontSelect: null,
         linkButton: null,
         linkInput: null,
         saveLink: null,
@@ -32,6 +33,8 @@ export function cacheElements(
         hrButton: null,
         bulletListButton: null,
         numberListButton: null,
+        fontButton: null,
+        fontList: null,
         buttons: {
             bold: { element: null, enabled: undefined },
             italic: { element: null, enabled: undefined },
@@ -46,7 +49,8 @@ export function cacheElements(
             quote: { element: null, enabled: undefined },
             hr: { element: null, enabled: undefined },
             bulletList: { element: null, enabled: undefined },
-            numberList: { element: null, enabled: undefined }
+            numberList: { element: null, enabled: undefined },
+            font: { element: null, enabled: undefined }
         }
     };
 
@@ -79,7 +83,9 @@ export function cacheElements(
         quoteButton: 'quote-button',
         hrButton: 'hr-button',
         bulletListButton: 'bullet-list-button',
-        numberListButton: 'number-list-button'
+        numberListButton: 'number-list-button',
+        fontButton: 'font-button',
+        fontList: 'font-list'
     };
 
     // Cache each element

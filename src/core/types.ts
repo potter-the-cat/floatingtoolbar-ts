@@ -31,6 +31,17 @@ export interface LinkButtons {
     url?: boolean;
 }
 
+export interface FontButtons {
+    enabled: boolean;
+}
+
+export interface FontConfig {
+    defaultFonts: string[];
+    googleFonts?: {
+        families: string[];
+    };
+}
+
 export interface ToolbarButtons {
     text: TextButtons;
     script?: ScriptButtons;
@@ -38,6 +49,7 @@ export interface ToolbarButtons {
     special?: SpecialButtons;
     list?: ListButtons;
     link?: LinkButtons;
+    font?: FontButtons;
 }
 
 export interface ToolbarOffset {
@@ -63,13 +75,14 @@ export interface ToolbarConfig {
     persistentPosition: PersistentPosition;
     toolbarId: string;
     resizeDebounceMs: number;
+    fontConfig?: FontConfig;
 }
 
 export interface ToolbarState {
     isVisible: boolean;
     isPersistent: boolean;
     isAtPersistentPosition: boolean;
-    currentView: 'initial' | 'linkInput' | null;
+    currentView: 'initial' | 'linkInput' | 'fontSelect' | null;
     selectedText: string | null;
     selectionRect: DOMRect | null;
     selectionRange: Range | null;
@@ -87,6 +100,8 @@ export interface ToolbarState {
     resizeTimeout?: number;
     activeFormats?: Set<string>;
     dropCapElements?: Set<HTMLElement>;
+    currentFont?: string;
+    loadedGoogleFonts?: Set<string>;
 }
 
 export interface ToolbarElements {
@@ -94,6 +109,7 @@ export interface ToolbarElements {
     container: HTMLElement | null;
     toolbarInitial: HTMLElement | null;
     toolbarLinkInput: HTMLElement | null;
+    toolbarFontSelect: HTMLElement | null;
     linkButton: HTMLButtonElement | null;
     linkInput: HTMLInputElement | null;
     saveLink: HTMLButtonElement | null;
@@ -114,6 +130,8 @@ export interface ToolbarElements {
     hrButton: HTMLButtonElement | null;
     bulletListButton: HTMLButtonElement | null;
     numberListButton: HTMLButtonElement | null;
+    fontButton: HTMLButtonElement | null;
+    fontList: HTMLElement | null;
     buttons: ButtonElements;
 }
 
@@ -145,6 +163,9 @@ export interface ButtonConfig {
     link: {
         url: boolean;
     };
+    font: {
+        enabled: boolean;
+    };
 }
 
 export type ButtonConfigs = Record<FormatType, ButtonConfig>;
@@ -163,7 +184,8 @@ export type FormatType =
     | 'quote'
     | 'hr'
     | 'bulletList'
-    | 'numberList';
+    | 'numberList'
+    | 'font';
 
 declare global {
     interface Window {
@@ -289,7 +311,10 @@ export const defaultConfig: ToolbarConfig = {
         heading: {},
         special: {},
         list: {},
-        link: {}
+        link: {},
+        font: {
+            enabled: false
+        }
     },
     offset: { x: 0, y: 0 },
     persistentPosition: {
@@ -298,4 +323,38 @@ export const defaultConfig: ToolbarConfig = {
     },
     toolbarId: '',
     resizeDebounceMs: 0
+};
+
+// Default configuration for buttons
+export const defaultButtonConfig: ButtonConfig = {
+    text: {
+        bold: false,
+        italic: false,
+        underline: false,
+        strikethrough: false
+    },
+    script: {
+        subscript: false,
+        superscript: false
+    },
+    heading: {
+        h1: false,
+        h2: false
+    },
+    special: {
+        dropCap: false,
+        code: false,
+        quote: false,
+        hr: false
+    },
+    list: {
+        bullet: false,
+        number: false
+    },
+    link: {
+        url: false
+    },
+    font: {
+        enabled: false
+    }
 };
