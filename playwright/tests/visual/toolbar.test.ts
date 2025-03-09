@@ -51,7 +51,7 @@ async function createLink(page: Page, text: string, url: string): Promise<void> 
     await expect(toolbar).toHaveClass(/following-selection/);
     
     // Click the link button and wait for it to be visible
-    const linkButton = await toolbar.locator('button[title="Add Link"]');
+    const linkButton = await toolbar.locator('button[title="Link"]');
     await expect(linkButton).toBeVisible({ timeout: 5000 });
     await linkButton.click();
     
@@ -316,7 +316,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await page.waitForTimeout(100);
 
         // Wait for link button to be ready and click it
-        const linkButton = await page.locator('#default-toolbar-link-button');
+        const linkButton = await page.locator('#default-toolbar button[title="Link"]');
         await expect(linkButton).toBeVisible();
         await linkButton.click();
         
@@ -390,7 +390,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         const initialCenterOffset = initialPosition.x + (initialPosition.width / 2) - (wrapperBox.x + (wrapperBox.width / 2));
 
         // Click the link button to show link input
-        const linkButton = await page.locator('#default-toolbar-link-button');
+        const linkButton = await page.locator('#default-toolbar button[title="Link"]');
         await expect(linkButton).toBeVisible();
         await linkButton.click();
         
@@ -589,7 +589,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         const initialClasses = await toolbar.evaluate(el => Array.from(el.classList));
 
         // Click link button
-        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        const linkButton = await toolbar.locator('button[title="Link"]');
         await linkButton.click();
         
         // Wait for animation
@@ -700,7 +700,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-after-selection.png' });
 
         // Click link button
-        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        const linkButton = await toolbar.locator('button[title="Link"]');
         await linkButton.click();
         
         // Wait for animation
@@ -736,7 +736,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toBeVisible();
         
         // Click link button
-        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        const linkButton = await toolbar.locator('button[title="Link"]');
         await expect(linkButton).toBeVisible();
         await linkButton.click();
         
@@ -773,7 +773,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toBeVisible();
         
         // Click link button
-        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        const linkButton = await toolbar.locator('button[title="Link"]');
         await expect(linkButton).toBeVisible();
         await linkButton.click();
         
