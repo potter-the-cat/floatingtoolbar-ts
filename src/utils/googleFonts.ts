@@ -1,5 +1,6 @@
 interface GoogleFontsConfig {
     families: string[];
+    display?: 'auto' | 'block' | 'swap' | 'fallback' | 'optional';
 }
 
 export async function loadGoogleFonts(config: GoogleFontsConfig): Promise<void> {

@@ -7,8 +7,11 @@ const config: Config.InitialOptions = {
         '^@/(.*)$': '<rootDir>/src/$1',
     },
     testMatch: [
-        '<rootDir>/src/tests/**/*.test.ts',
-        '<rootDir>/tests/**/*.test.ts'
+        '<rootDir>/tests/unit/**/*.test.ts'
+    ],
+    testPathIgnorePatterns: [
+        '<rootDir>/playwright/',
+        '<rootDir>/node_modules/'
     ],
     transform: {
         '^.+\\.tsx?$': ['ts-jest', {
@@ -17,6 +20,7 @@ const config: Config.InitialOptions = {
     },
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    roots: ['<rootDir>/src', '<rootDir>/tests'],
 };
 
 export default config; 

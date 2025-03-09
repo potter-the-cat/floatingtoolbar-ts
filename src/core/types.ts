@@ -1,4 +1,5 @@
 export interface TextButtons {
+    fonts?: string[];
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
@@ -39,6 +40,7 @@ export interface FontConfig {
     defaultFonts: string[];
     googleFonts?: {
         families: string[];
+        display?: 'auto' | 'block' | 'swap' | 'fallback' | 'optional';
     };
 }
 
@@ -109,7 +111,7 @@ export interface ToolbarElements {
     container: HTMLElement | null;
     toolbarInitial: HTMLElement | null;
     toolbarLinkInput: HTMLElement | null;
-    toolbarFontSelect: HTMLElement | null;
+    toolbarFontSelect: HTMLDivElement | null;
     linkButton: HTMLButtonElement | null;
     linkInput: HTMLInputElement | null;
     saveLink: HTMLButtonElement | null;
@@ -131,7 +133,7 @@ export interface ToolbarElements {
     bulletListButton: HTMLButtonElement | null;
     numberListButton: HTMLButtonElement | null;
     fontButton: HTMLButtonElement | null;
-    fontList: HTMLElement | null;
+    fontList: HTMLDivElement | null;
     buttons: ButtonElements;
 }
 
@@ -358,3 +360,12 @@ export const defaultButtonConfig: ButtonConfig = {
         enabled: false
     }
 };
+
+export interface ToolbarContext {
+    config: ToolbarConfig;
+    state: ToolbarState;
+    elements: ToolbarElements;
+    debug: (message: string) => void;
+    updateView: () => void;
+    updateFormatButtonStates: () => void;
+}

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe('Text Formatting Visual Tests', () => {
     test.beforeEach(async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe('Text Formatting Visual Tests', () => {
     });
 
     // Helper function to clear all states
-    const clearStates = async (page) => {
+    const clearStates = async (page: Page) => {
         await page.mouse.move(-200, -200);
         await page.waitForTimeout(500);
         await page.evaluate(() => {
@@ -34,7 +34,7 @@ test.describe('Text Formatting Visual Tests', () => {
     };
 
     // Helper function to check button states
-    const checkButtonStates = async (page) => {
+    const checkButtonStates = async (page: Page) => {
         return await page.evaluate(() => {
             const buttons = ['bold', 'italic', 'underline', 'strikethrough', 'drop-cap'] as const;
             const states: Record<string, { classes: string; commandState: boolean; id: string; computedStyles: any }> = {};

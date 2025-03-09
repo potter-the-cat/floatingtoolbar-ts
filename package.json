@@ -5,8 +5,8 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack --mode development --watch",
-    "test": "jest",
-    "test:unit": "jest",
+    "test": "npm run test:unit",
+    "test:unit": "jest --config jest.config.ts",
     "test:visual": "playwright test",
     "test:all": "npm run test:unit && npm run test:visual",
     "serve": "serve ."

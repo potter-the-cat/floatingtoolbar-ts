@@ -13,6 +13,7 @@ export const requiredStyles = `
         --toolbar-input-border: rgba(255, 255, 255, 0.2);
         --toolbar-input-focus: rgba(255, 255, 255, 0.4);
         --toolbar-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        --toolbar-text-secondary: rgba(255, 255, 255, 0.7);
     }
 
     .floating-toolbar.theme-light {
@@ -25,6 +26,7 @@ export const requiredStyles = `
         --toolbar-input-border: #e1e1e1;
         --toolbar-input-focus: #333333;
         --toolbar-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        --toolbar-text-secondary: rgba(0, 0, 0, 0.6);
     }
 
     .floating-toolbar.theme-blue {
@@ -37,6 +39,7 @@ export const requiredStyles = `
         --toolbar-input-border: rgba(255, 255, 255, 0.2);
         --toolbar-input-focus: rgba(255, 255, 255, 0.4);
         --toolbar-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+        --toolbar-text-secondary: rgba(255, 255, 255, 0.7);
     }
 
     .content-wrapper {
@@ -247,6 +250,78 @@ export const requiredStyles = `
                     top: -6px;
                 }
 
+    /* Font dropdown styles */
+    .toolbar-font-select {
+        display: none;
+        position: absolute;
+        background: var(--toolbar-bg);
+        border: 1px solid var(--toolbar-border);
+        border-radius: 4px;
+        box-shadow: var(--toolbar-shadow);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        min-width: 200px;
+    }
+
+    .toolbar-font-select.active {
+        display: block;
+    }
+
+    .toolbar-font-section {
+        padding: 8px 0;
+    }
+
+    .toolbar-font-section:not(:last-child) {
+        border-bottom: 1px solid var(--toolbar-border);
+    }
+
+    .toolbar-font-section-title {
+        padding: 4px 12px;
+        color: var(--toolbar-text-secondary);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .toolbar-font-item {
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 14px;
+        color: var(--toolbar-text);
+    }
+
+    .toolbar-font-item:hover {
+        background-color: var(--toolbar-hover);
+    }
+
+    .toolbar-font-item.active {
+        background-color: var(--toolbar-active);
+    }
+
+    /* Font button styles */
+    button[data-format="font"] {
+        min-width: 100px;
+        text-align: left;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    button[data-format="font"] .font-name {
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    button[data-format="font"]::after {
+        content: "▾";
+        margin-left: 4px;
+        font-size: 10px;
+        opacity: 0.7;
+    }
 `;
 
 /**

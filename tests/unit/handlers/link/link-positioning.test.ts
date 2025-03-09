@@ -20,6 +20,7 @@ describe('Link Toolbar Positioning', () => {
         const linkInput = document.createElement('input');
         const toolbarInitial = document.createElement('div');
         const toolbarLinkInput = document.createElement('div');
+        const toolbarFontSelect = document.createElement('div');
         const container = document.createElement('div');
         const contentArea = document.createElement('div');
         contentArea.id = 'content';
@@ -31,6 +32,7 @@ describe('Link Toolbar Positioning', () => {
             container,
             toolbarInitial,
             toolbarLinkInput,
+            toolbarFontSelect,
             linkButton: document.createElement('button'),
             saveLink: document.createElement('button'),
             cancelLink: document.createElement('button'),
@@ -50,6 +52,8 @@ describe('Link Toolbar Positioning', () => {
             hrButton: document.createElement('button'),
             bulletListButton: document.createElement('button'),
             numberListButton: document.createElement('button'),
+            fontButton: document.createElement('button'),
+            fontList: document.createElement('div'),
             linkInput,
             buttons: {
                 bold: { element: document.createElement('button'), enabled: true },
@@ -65,7 +69,8 @@ describe('Link Toolbar Positioning', () => {
                 quote: { element: document.createElement('button'), enabled: true },
                 hr: { element: document.createElement('button'), enabled: true },
                 bulletList: { element: document.createElement('button'), enabled: true },
-                numberList: { element: document.createElement('button'), enabled: true }
+                numberList: { element: document.createElement('button'), enabled: true },
+                font: { element: document.createElement('button'), enabled: true }
             }
         };
 

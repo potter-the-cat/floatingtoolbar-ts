@@ -1,4 +1,5 @@
 import { ToolbarConfig, ToolbarState, ToolbarElements, ButtonConfigs, FormatType, ButtonElement, ButtonElements } from './types';
+import { FontHandler } from './handlers/FontHandler';
 
 interface EventHandlers {
     handleSelection: (e: Event) => void;
@@ -206,6 +207,14 @@ export function setupEventListeners(
     document.addEventListener('mouseup', handlers.handleSelection);
     document.addEventListener('keyup', handlers.handleSelection);
     document.addEventListener('selectionchange', handlers.handleSelection);
+
+    // Font button click handler
+    if (config.buttons.font?.enabled && elements.fontButton) {
+        console.log('Setting up font button in eventManager', {
+            buttonExists: !!elements.fontButton,
+            buttonId: elements.fontButton?.id
+        });
+    }
 }
 
 export function destroyEventListeners(

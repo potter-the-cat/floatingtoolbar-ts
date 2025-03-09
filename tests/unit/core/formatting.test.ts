@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { handleDropCap, updateFormatButtonStates } from '../handlers/formatting';
+import { handleDropCap, updateFormatButtonStates } from '@/handlers/formatting';
 
 describe('Drop Cap Formatting', () => {
     let mockContext: any;

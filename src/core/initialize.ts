@@ -2,6 +2,7 @@ import { ToolbarConfig, ToolbarState, ToolbarElements } from './types';
 import { cacheElements } from '../utils/elements';
 import { setupEventListeners } from './eventManager';
 import { setupToolbarPositionObserver } from '../ui/positioning';
+import { FontHandler } from './handlers/FontHandler';
 
 export interface InitializeContext {
     config: ToolbarConfig;
@@ -31,6 +32,17 @@ export function initialize(
     
     // Cache DOM elements with properly bound debug function
     this.elements = cacheElements(this.config, this.debug.bind(this));
+    
+    // Initialize font handler if enabled
+    if (this.config.buttons.font?.enabled) {
+        const fontHandler = new FontHandler({
+            config: this.config,
+            state: this.state,
+            elements: this.elements,
+            updateView: this.updateView.bind(this)
+        });
+        fontHandler.initialize();
+    }
     
     // Set up event listeners
     setupEventListeners(

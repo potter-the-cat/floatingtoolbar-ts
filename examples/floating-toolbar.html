@@ -6,7 +6,8 @@
     <title>Floating Toolbar Tests</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link href="themes/custom-theme.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="../themes/custom-theme.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -100,6 +101,79 @@
             border-radius: 3px;
             font-family: monospace;
         }
+
+        /* Font button and dropdown styles */
+        button[data-format="font"] {
+            min-width: 32px !important;
+            text-align: center !important;
+            padding: 6px !important;
+            position: relative;
+        }
+
+        .toolbar-font-select {
+            min-width: 180px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--toolbar-bg, #ffffff);
+            border: 1px solid var(--toolbar-border, #e1e1e1);
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            z-index: 10001; /* Higher than toolbar */
+            padding: 4px 0;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: auto; /* Ensure clicks reach the dropdown */
+        }
+
+        .toolbar-font-select.active {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .toolbar-font-section {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--toolbar-border, #e1e1e1);
+            pointer-events: auto;
+        }
+
+        .toolbar-font-section:last-child {
+            border-bottom: none;
+        }
+
+        .toolbar-font-section-title {
+            padding: 4px 12px;
+            color: var(--toolbar-text-secondary, #666);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            pointer-events: auto;
+        }
+
+        .toolbar-font-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            color: var(--toolbar-text, #333);
+            white-space: nowrap;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            pointer-events: auto;
+        }
+
+        .toolbar-font-item:hover {
+            background-color: var(--toolbar-hover, rgba(0, 0, 0, 0.05));
+        }
+
+        .toolbar-font-item.active {
+            background-color: var(--toolbar-active, rgba(0, 0, 0, 0.1));
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -159,6 +233,30 @@
         <div class="content-wrapper">
             <div class="themed-content" contenteditable="true">
                 <p>This is a custom themed toolbar example. Try selecting some text to see the custom styled toolbar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Case 4: Font Selection Demo -->
+    <div class="test-case">
+        <h2>Font Selection Demo</h2>
+        <div class="test-description">
+            This editor demonstrates the font selection feature with both system fonts and Google Fonts.
+        </div>
+        <div id="font-editor">
+            <div class="content-wrapper">
+                <div class="font-content" contenteditable="true">
+                    <p>Try selecting this text and using the font selector to change its appearance. You can choose from system fonts or Google Fonts.</p>
+                    <p>This paragraph shows how different fonts can enhance your content. Try applying different fonts to see how they affect readability and style.</p>
+                    <blockquote>Typography is an essential part of design. Each font brings its own personality to your content.</blockquote>
+                    <p>Some examples of what you can do:</p>
+                    <ul>
+                        <li>Use serif fonts for traditional or formal content</li>
+                        <li>Apply sans-serif fonts for modern, clean looks</li>
+                        <li>Mix different fonts to create visual hierarchy</li>
+                        <li>Experiment with Google Fonts for unique styles</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -266,6 +364,49 @@
                     },
                     link: {
                         url: true
+                    }
+                }
+            });
+
+            // Initialize font selection demo
+            window.FloatingToolbar.init({
+                container: '#font-editor',
+                content: '.font-content',
+                mode: 'floating',
+                theme: 'light',
+                debug: true,
+                offset: { x: 0, y: 10 },
+                toolbarId: 'font-toolbar',
+                buttons: {
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true
+                    },
+                    font: {
+                        enabled: true
+                    }
+                },
+                fontConfig: {
+                    defaultFonts: [
+                        'Arial',
+                        'Times New Roman',
+                        'Georgia',
+                        'Verdana',
+                        'Helvetica',
+                        'Tahoma',
+                        'Trebuchet MS'
+                    ],
+                    googleFonts: {
+                        families: [
+                            'Roboto',
+                            'Open Sans',
+                            'Lato',
+                            'Playfair Display',
+                            'Montserrat',
+                            'Libre Baskerville'
+                        ],
+                        display: 'swap'
                     }
                 }
             });

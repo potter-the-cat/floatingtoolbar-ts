@@ -39,6 +39,15 @@ export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): s
                     ` : ''}
                 </div>
                 
+                <!-- Font selection group -->
+                ${config.buttons.font?.enabled ? `
+                    <div class="toolbar-group">
+                        <button id="${config.toolbarId}-font-button" title="Font" data-format="font">
+                            <span class="material-icons" data-icon="font_download">font_download</span>
+                        </button>
+                    </div>
+                ` : ''}
+                
                 <!-- Headings group -->
                 ${(config.buttons.heading?.h1 || config.buttons.heading?.h2) ? `
                     <div class="toolbar-group">
@@ -108,19 +117,22 @@ export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): s
                 ` : ''}
             </div>
             <div class="toolbar-link-input">
-                <input type="text" id="${config.toolbarId}-link-input" placeholder="Enter URL...">
-                <button id="${config.toolbarId}-visit-link" class="toolbar-button" type="button" title="Visit URL">
-                    <span class="material-icons" data-icon="open_in_new">open_in_new</span>
-                </button>
-                <button id="${config.toolbarId}-remove-link" class="toolbar-button" type="button" title="Remove link">
-                    <span class="material-icons" data-icon="delete">delete</span>
-                </button>
-                <button id="${config.toolbarId}-save-link" class="toolbar-button" type="button" title="Save">
+                <input type="text" id="${config.toolbarId}-link-input" placeholder="Enter URL">
+                <button id="${config.toolbarId}-save-link" title="Save">
                     <span class="material-icons" data-icon="check">check</span>
                 </button>
-                <button id="${config.toolbarId}-cancel-link" class="toolbar-button" type="button" title="Cancel">
+                <button id="${config.toolbarId}-cancel-link" title="Cancel">
                     <span class="material-icons" data-icon="close">close</span>
                 </button>
+                <button id="${config.toolbarId}-remove-link" title="Remove Link">
+                    <span class="material-icons" data-icon="link_off">link_off</span>
+                </button>
+                <button id="${config.toolbarId}-visit-link" title="Visit Link">
+                    <span class="material-icons" data-icon="open_in_new">open_in_new</span>
+                </button>
+            </div>
+            <div id="${config.toolbarId}-font-list" class="toolbar-font-select">
+                <!-- Font list will be populated dynamically -->
             </div>
         </div>
     `;
