@@ -116,7 +116,7 @@ test.describe('Text Formatting Visual Tests', () => {
         await clearStates(page);
         const initialStates = await checkButtonStates(page);
         await page.screenshot({ 
-            path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-state.png',
+            path: 'playwright/tests/functional/formatting.test.ts-snapshots/initial-state.png',
             animations: 'disabled'
         });
 
@@ -234,7 +234,7 @@ test.describe('Text Formatting Visual Tests', () => {
             expect(appliedStates[format.name].classes).toContain('active');
             
             await page.screenshot({ 
-                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-applied.png`,
+                path: `playwright/tests/functional/formatting.test.ts-snapshots/${format.name}-applied.png`,
                 animations: 'disabled'
             });
             
@@ -282,7 +282,7 @@ test.describe('Text Formatting Visual Tests', () => {
             expect(removedStates[format.name].classes).not.toContain('active');
 
             await page.screenshot({ 
-                path: `tests/visual/formatting.simple.test.ts-snapshots/${format.name}-removed.png`,
+                path: `playwright/tests/functional/formatting.test.ts-snapshots/${format.name}-removed.png`,
                 animations: 'disabled'
             });
 
@@ -367,7 +367,7 @@ test.describe('Text Formatting Visual Tests', () => {
 
         // Take screenshot showing all buttons in their initial state
         await page.screenshot({ 
-            path: 'tests/visual/formatting.simple.test.ts-snapshots/initial-selection.png',
+            path: 'playwright/tests/functional/formatting.test.ts-snapshots/initial-selection.png',
             animations: 'disabled'
         });
     });

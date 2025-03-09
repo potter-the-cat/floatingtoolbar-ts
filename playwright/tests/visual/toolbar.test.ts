@@ -503,7 +503,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await page.waitForTimeout(500);
         
         // Take screenshot of initial position (showing full viewport)
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-before-scroll.png' });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/full-page-before-scroll.png' });
         
         // Get the selection's position before scrolling
         const initialSelectionPos = await page.evaluate(() => {
@@ -533,7 +533,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await page.waitForTimeout(500);
         
         // Take screenshot of final position (showing full viewport)
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/full-page-after-scroll.png' });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/full-page-after-scroll.png' });
         
         // Get the selection's position after scrolling
         const finalSelectionPos = await page.evaluate(() => {
@@ -691,13 +691,13 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toHaveClass(/persistent-position/);
         
         // Take screenshot of initial state
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-initial.png' });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-initial.png' });
 
         // Select some text
         await selectText(page, 'Lorem ipsum');
         
         // Take screenshot after selection
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-after-selection.png' });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-after-selection.png' });
 
         // Click link button
         const linkButton = await toolbar.locator('button[title="Add Link"]');
@@ -711,7 +711,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).not.toHaveClass(/persistent-position/);
         
         // Take screenshot of link editing state
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-link-editing.png' });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-link-editing.png' });
     });
 
     test('Persistent toolbar stays with selection when editing existing link', async ({ page }) => {
@@ -725,7 +725,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toHaveClass(/persistent-position/);
         
         // Take screenshot of initial state
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-existing-initial.png', fullPage: true });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-existing-initial.png', fullPage: true });
         
         // Create a link
         await createLink(page, 'Lorem ipsum', 'https://example.com');
@@ -748,7 +748,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).not.toHaveClass(/persistent-position/);
         
         // Take screenshot of link editing state
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-existing-editing.png', fullPage: true });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-existing-editing.png', fullPage: true });
     });
 
     test('Persistent toolbar maintains selection position during scroll with link editing', async ({ page }) => {
@@ -762,7 +762,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toHaveClass(/persistent-position/);
         
         // Take screenshot of initial state
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-scroll-initial.png', fullPage: true });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-scroll-initial.png', fullPage: true });
         
         // Create a link
         await createLink(page, 'Lorem ipsum', 'https://example.com');
@@ -785,7 +785,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).not.toHaveClass(/persistent-position/);
         
         // Take screenshot before scroll
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-scroll-before.png', fullPage: true });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-scroll-before.png', fullPage: true });
         
         // Scroll the page
         await page.evaluate(() => window.scrollBy(0, 200));
@@ -794,7 +794,7 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await page.waitForTimeout(500);
         
         // Take screenshot after scroll
-        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/persistent-toolbar-scroll-after.png', fullPage: true });
+        await page.screenshot({ path: 'playwright/tests/visual/toolbar.test.ts-snapshots/persistent-toolbar-scroll-after.png', fullPage: true });
         
         // Should still be following selection
         await expect(toolbar).toHaveClass(/following-selection/);
