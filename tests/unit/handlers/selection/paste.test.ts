@@ -1,7 +1,16 @@
 import { handlePaste } from '../../../../src/handlers/selection';
 import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../../../src/core/types';
 
-// Mock the SelectionHandlerContext
+/**
+ * This test suite tests the paste handler functionality in isolation.
+ * It mocks the necessary context and clipboard events to verify that:
+ * 1. The default paste behavior is prevented
+ * 2. HTML content is properly extracted from the clipboard
+ * 3. Plain text is used as a fallback when HTML is not available
+ * 4. The toolbar state is updated after pasting
+ */
+
+// Mock the SelectionHandlerContext with all required properties
 const mockContext = {
   config: {
     container: '.container',
@@ -50,24 +59,24 @@ describe('Paste Handler', () => {
   let container: HTMLElement;
   
   beforeEach(() => {
-    // Set up a test container
+    // Set up a test container with contenteditable attribute
     container = document.createElement('div');
     container.id = 'editor';
     container.setAttribute('contenteditable', 'true');
     document.body.appendChild(container);
     
-    // Reset mocks
+    // Reset all mocks before each test
     jest.clearAllMocks();
   });
   
   afterEach(() => {
-    // Clean up
+    // Clean up the DOM after each test
     document.body.removeChild(container);
   });
   
   describe('handlePaste', () => {
     it('should prevent default paste behavior', () => {
-      // Create a mock clipboard event
+      // Create a mock clipboard event with preventDefault spy
       const mockEvent = {
         preventDefault: jest.fn(),
         clipboardData: {
@@ -75,15 +84,15 @@ describe('Paste Handler', () => {
         }
       } as unknown as ClipboardEvent;
       
-      // Call handlePaste
+      // Call handlePaste with the mock context and event
       handlePaste.call(mockContext, mockEvent);
       
-      // Check if preventDefault was called
+      // Verify that preventDefault was called to stop default paste behavior
       expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
     
     it('should get HTML content from clipboard if available', () => {
-      // Create a mock clipboard event with HTML content
+      // Create a mock clipboard event with both HTML and plain text content
       const mockEvent = {
         preventDefault: jest.fn(),
         clipboardData: {
@@ -95,18 +104,18 @@ describe('Paste Handler', () => {
         }
       } as unknown as ClipboardEvent;
       
-      // Mock document.execCommand
+      // Mock document.execCommand since we can't test actual DOM manipulation in Jest
       document.execCommand = jest.fn();
       
-      // Call handlePaste
+      // Call handlePaste with the mock context and event
       handlePaste.call(mockContext, mockEvent);
       
-      // Check if getData was called with 'text/html'
+      // Verify that getData was called with 'text/html' to get formatted content
       expect(mockEvent.clipboardData?.getData).toHaveBeenCalledWith('text/html');
     });
     
     it('should fall back to plain text if HTML is not available', () => {
-      // Create a mock clipboard event with only plain text
+      // Create a mock clipboard event with only plain text (no HTML)
       const mockEvent = {
         preventDefault: jest.fn(),
         clipboardData: {
@@ -118,13 +127,13 @@ describe('Paste Handler', () => {
         }
       } as unknown as ClipboardEvent;
       
-      // Mock document.execCommand
+      // Mock document.execCommand since we can't test actual DOM manipulation in Jest
       document.execCommand = jest.fn();
       
-      // Call handlePaste
+      // Call handlePaste with the mock context and event
       handlePaste.call(mockContext, mockEvent);
       
-      // Check if execCommand was called with 'insertText'
+      // Verify that execCommand was called with 'insertText' and the plain text
       expect(document.execCommand).toHaveBeenCalledWith('insertText', false, 'test text');
     });
     
@@ -137,13 +146,13 @@ describe('Paste Handler', () => {
         }
       } as unknown as ClipboardEvent;
       
-      // Mock document.execCommand
+      // Mock document.execCommand since we can't test actual DOM manipulation in Jest
       document.execCommand = jest.fn();
       
-      // Call handlePaste
+      // Call handlePaste with the mock context and event
       handlePaste.call(mockContext, mockEvent);
       
-      // Check if updateFormatButtonStates and updateView were called
+      // Verify that the toolbar state is updated after pasting
       expect(mockContext.updateFormatButtonStates).toHaveBeenCalled();
       expect(mockContext.updateView).toHaveBeenCalled();
     });

@@ -1,183 +1,212 @@
 import { FloatingToolbar } from '../../../../src/core/FloatingToolbar';
 import { ButtonConfig } from '../../../../src/core/types';
+import { handlePaste } from '../../../../src/handlers/selection';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../../../src/core/types';
 
-describe('Paste Integration Tests', () => {
+/**
+ * Integration tests for the paste handler functionality.
+ * 
+ * These tests simulate real-world paste scenarios with different content types:
+ * 1. HTML content with various formatting
+ * 2. Plain text content
+ * 3. Content from Google Docs with its specific formatting
+ * 4. Content from Microsoft Word with its specific formatting
+ * 
+ * Unlike the unit tests, these tests focus on the end-to-end behavior
+ * of the paste handler, including HTML sanitization and format mapping.
+ */
+
+// Mock the SelectionHandlerContext with all required properties
+const mockContext = {
+  config: {
+    container: '.container',
+    content: '#editor',
+    selector: '#editor',
+    mode: 'floating' as const,
+    theme: 'dark' as const,
+    debug: true,
+    useExistingToolbar: false,
+    buttons: {
+      text: { bold: true }
+    },
+    offset: { x: 0, y: 0 },
+    persistentPosition: { top: 0, center: true },
+    toolbarId: 'test-toolbar',
+    resizeDebounceMs: 100
+  } as ToolbarConfig,
+  state: {
+    isVisible: true,
+    isPersistent: false,
+    isAtPersistentPosition: false,
+    currentView: 'initial' as const,
+    selectedText: null,
+    selectionRect: null,
+    selectionRange: null,
+    currentSelection: null,
+    existingLink: null,
+    linkUrl: '',
+    isValidUrl: false,
+    toolbarRect: null,
+    wrapperRect: null,
+    spaceAbove: 0,
+    spaceBelow: 0,
+    isProcessingLinkClick: false,
+    positionObserver: null
+  } as ToolbarState,
+  elements: {} as ToolbarElements,
+  debug: jest.fn(),
+  updateView: jest.fn(),
+  updateFormatButtonStates: jest.fn(),
+  clearFormatButtonStates: jest.fn(),
+  checkForExistingLink: jest.fn()
+};
+
+/**
+ * Helper function to create a mock clipboard event with specified HTML and plain text content.
+ * This allows us to simulate different types of clipboard data in our tests.
+ */
+function createMockClipboardEvent(html: string, text: string): ClipboardEvent {
+  return {
+    preventDefault: jest.fn(),
+    clipboardData: {
+      getData: jest.fn((type) => {
+        if (type === 'text/html') return html;
+        if (type === 'text/plain') return text;
+        return '';
+      })
+    }
+  } as unknown as ClipboardEvent;
+}
+
+/**
+ * Helper function to set up the test environment with a contenteditable container
+ * and return the container element for assertions.
+ */
+function setupTestEnvironment(): HTMLElement {
+  const container = document.createElement('div');
+  container.id = 'editor';
+  container.setAttribute('contenteditable', 'true');
+  document.body.appendChild(container);
+  return container;
+}
+
+/**
+ * Helper function to clean up the test environment by removing the container.
+ */
+function cleanupTestEnvironment(container: HTMLElement): void {
+  document.body.removeChild(container);
+}
+
+describe('Paste Handler Integration Tests', () => {
   let container: HTMLElement;
-  let editor: HTMLElement;
-  let toolbar: FloatingToolbar;
   
   beforeEach(() => {
-    // Set up the DOM
-    container = document.createElement('div');
-    container.className = 'content-wrapper';
+    // Set up the test environment before each test
+    container = setupTestEnvironment();
+    jest.clearAllMocks();
     
-    editor = document.createElement('div');
-    editor.id = 'editor';
-    editor.className = 'content';
-    editor.setAttribute('contenteditable', 'true');
-    
-    container.appendChild(editor);
-    document.body.appendChild(container);
-    
-    // Initialize the toolbar with complete button config
-    const buttons: ButtonConfig = {
-      text: {
-        bold: true,
-        italic: true,
-        underline: true,
-        strikethrough: true
-      },
-      script: {
-        subscript: false,
-        superscript: false
-      },
-      heading: {
-        h1: false,
-        h2: false
-      },
-      special: {
-        dropCap: false,
-        code: false,
-        quote: false,
-        hr: false
-      },
-      list: {
-        bullet: false,
-        number: false
-      },
-      link: {
-        url: false
-      },
-      font: {
-        enabled: false
-      },
-      alignment: {
-        left: false,
-        center: false,
-        right: false,
-        justify: false
+    // Mock the execCommand to actually insert content for integration testing
+    document.execCommand = jest.fn((command, showUI, value) => {
+      if (command === 'insertHTML' && value) {
+        container.innerHTML = value;
+        return true;
       }
-    };
-    
-    // Initialize the toolbar
-    toolbar = new FloatingToolbar({
-      container: '.content-wrapper',
-      content: '.content',
-      mode: 'floating',
-      theme: 'dark',
-      debug: false,
-      useExistingToolbar: false,
-      buttons,
-      offset: { x: 0, y: 0 },
-      persistentPosition: { top: 0, center: true },
-      toolbarId: 'test-toolbar',
-      resizeDebounceMs: 100
+      if (command === 'insertText' && value) {
+        container.textContent = value;
+        return true;
+      }
+      return false;
     });
-    
-    // Mock document.execCommand
-    document.execCommand = jest.fn();
   });
   
   afterEach(() => {
-    // Clean up
-    document.body.removeChild(container);
-    jest.clearAllMocks();
+    // Clean up the test environment after each test
+    cleanupTestEnvironment(container);
   });
   
-  it('should handle pasting HTML content', () => {
-    // Create a paste event with HTML content
-    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-    Object.defineProperty(pasteEvent, 'clipboardData', {
-      value: {
-        getData: jest.fn((type) => {
-          if (type === 'text/html') return '<p>test <strong>html</strong></p>';
-          if (type === 'text/plain') return 'test html';
-          return '';
-        })
-      }
-    });
+  it('should handle HTML content correctly', () => {
+    // Test with standard HTML content containing various formatting elements
+    const htmlContent = '<p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>';
+    const plainText = 'This is bold and italic text with a link.';
     
-    // Dispatch the paste event
-    editor.dispatchEvent(pasteEvent);
+    // Create a mock clipboard event with the test content
+    const mockEvent = createMockClipboardEvent(htmlContent, plainText);
     
-    // Check if preventDefault was called (via the mock)
-    expect(pasteEvent.defaultPrevented).toBe(true);
+    // Call handlePaste with the mock context and event
+    handlePaste.call(mockContext, mockEvent);
+    
+    // Verify that the HTML was processed and inserted correctly
+    // Note: The exact output may vary based on the sanitization and formatting rules
+    expect(container.innerHTML).toContain('<strong>bold</strong>');
+    expect(container.innerHTML).toContain('<em>italic</em>');
+    expect(container.innerHTML).toContain('<a href="https://example.com">link</a>');
   });
   
-  it('should handle pasting plain text when HTML is not available', () => {
-    // Create a paste event with only plain text
-    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-    Object.defineProperty(pasteEvent, 'clipboardData', {
-      value: {
-        getData: jest.fn((type) => {
-          if (type === 'text/html') return '';
-          if (type === 'text/plain') return 'plain text';
-          return '';
-        })
-      }
-    });
+  it('should handle plain text content correctly', () => {
+    // Test with plain text content only (no HTML)
+    const plainText = 'This is plain text without any formatting.';
     
-    // Dispatch the paste event
-    editor.dispatchEvent(pasteEvent);
+    // Create a mock clipboard event with empty HTML and only plain text
+    const mockEvent = createMockClipboardEvent('', plainText);
     
-    // Check if preventDefault was called
-    expect(pasteEvent.defaultPrevented).toBe(true);
+    // Call handlePaste with the mock context and event
+    handlePaste.call(mockContext, mockEvent);
     
-    // Check if execCommand was called with the plain text
-    expect(document.execCommand).toHaveBeenCalledWith('insertText', false, 'plain text');
+    // Verify that the plain text was inserted correctly
+    expect(container.textContent).toBe(plainText);
   });
   
-  it('should handle pasting content from Google Docs', () => {
-    // Create a paste event with Google Docs style HTML
+  it('should handle Google Docs content correctly', () => {
+    // Test with content that simulates a paste from Google Docs
+    // Google Docs uses specific span elements with style attributes
     const googleDocsHtml = `
-      <meta charset='utf-8'><span style="font-size:11pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:700;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Bold text</span>
-      <span style="font-size:11pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:italic;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Italic text</span>
+      <meta charset='utf-8'><meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-abc123"><span style="font-size:11pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:700;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">This is bold text from Google Docs</span></b>
     `;
+    const plainText = 'This is bold text from Google Docs';
     
-    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-    Object.defineProperty(pasteEvent, 'clipboardData', {
-      value: {
-        getData: jest.fn((type) => {
-          if (type === 'text/html') return googleDocsHtml;
-          if (type === 'text/plain') return 'Bold text Italic text';
-          return '';
-        })
-      }
-    });
+    // Create a mock clipboard event with the Google Docs content
+    const mockEvent = createMockClipboardEvent(googleDocsHtml, plainText);
     
-    // Dispatch the paste event
-    editor.dispatchEvent(pasteEvent);
+    // Call handlePaste with the mock context and event
+    handlePaste.call(mockContext, mockEvent);
     
-    // Check if preventDefault was called
-    expect(pasteEvent.defaultPrevented).toBe(true);
+    // Verify that the Google Docs formatting was properly mapped to standard HTML
+    // The mapExternalFormatting function should convert Google Docs styles to standard HTML elements
+    expect(container.innerHTML).toContain('<strong>');
+    expect(container.innerHTML).toContain('This is bold text from Google Docs');
+    
+    // Verify that Google Docs specific elements were removed
+    expect(container.innerHTML).not.toContain('docs-internal-guid');
   });
   
-  it('should handle pasting content from Microsoft Word', () => {
-    // Create a paste event with Word style HTML
+  it('should handle Microsoft Word content correctly', () => {
+    // Test with content that simulates a paste from Microsoft Word
+    // Word uses specific elements and classes for formatting
     const wordHtml = `
-      <meta charset='utf-8'><p class=MsoNormal><span style='font-family:"Calibri",sans-serif;
-      mso-ascii-theme-font:minor-latin;mso-hansi-theme-font:minor-latin;mso-bidi-theme-font:
-      minor-latin;font-weight:bold;mso-bidi-font-weight:normal'>Bold text</span></p>
-      <p class=MsoNormal><span style='font-family:"Calibri",sans-serif;mso-ascii-theme-font:
-      minor-latin;mso-hansi-theme-font:minor-latin;mso-bidi-theme-font:minor-latin;
-      font-style:italic;mso-bidi-font-style:normal'>Italic text</span></p>
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+        <head>
+          <meta charset="utf-8">
+          <meta name=Generator content="Microsoft Word 15">
+        </head>
+        <body>
+          <p class=MsoNormal><span style='mso-bidi-font-weight:bold'>This is bold text from Word</span></p>
+        </body>
+      </html>
     `;
+    const plainText = 'This is bold text from Word';
     
-    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-    Object.defineProperty(pasteEvent, 'clipboardData', {
-      value: {
-        getData: jest.fn((type) => {
-          if (type === 'text/html') return wordHtml;
-          if (type === 'text/plain') return 'Bold text Italic text';
-          return '';
-        })
-      }
-    });
+    // Create a mock clipboard event with the Word content
+    const mockEvent = createMockClipboardEvent(wordHtml, plainText);
     
-    // Dispatch the paste event
-    editor.dispatchEvent(pasteEvent);
+    // Call handlePaste with the mock context and event
+    handlePaste.call(mockContext, mockEvent);
     
-    // Check if preventDefault was called
-    expect(pasteEvent.defaultPrevented).toBe(true);
+    // Verify that the Word formatting was properly mapped to standard HTML
+    // The mapExternalFormatting function should convert Word styles to standard HTML elements
+    expect(container.innerHTML).toContain('This is bold text from Word');
+    
+    // Verify that Word specific elements and classes were removed
+    expect(container.innerHTML).not.toContain('MsoNormal');
+    expect(container.innerHTML).not.toContain('xmlns:o');
   });
 }); 
