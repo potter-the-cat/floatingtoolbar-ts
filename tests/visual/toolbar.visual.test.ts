@@ -449,4 +449,435 @@ test.describe('Floating Toolbar Visual Tests', () => {
         await expect(toolbar).toHaveClass(/following-selection/);
         await expect(toolbar).not.toHaveClass(/fixed-position/);
     });
+
+    test('Link toolbar maintains position when editing new link', async ({ page }) => {
+        const editor = await page.locator('.editable-content');
+        await editor.waitFor({ state: 'visible' });
+        
+        // Select text in the middle of the content
+        await editor.evaluate((el) => {
+            const range = document.createRange();
+            const paragraphs = el.querySelectorAll('p');
+            const middleParagraph = paragraphs[Math.floor(paragraphs.length / 2)];
+            if (!middleParagraph) return;
+            
+            range.selectNodeContents(middleParagraph);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            middleParagraph.dispatchEvent(mouseupEvent);
+            document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+        });
+
+        const toolbar = await page.locator('#default-toolbar');
+        await expect(toolbar).toBeVisible();
+        
+        // Get initial toolbar position and state
+        const initialPosition = await toolbar.boundingBox();
+        if (!initialPosition) throw new Error('Could not get toolbar position');
+
+        // Store initial classes
+        const initialClasses = await toolbar.evaluate(el => Array.from(el.classList));
+
+        // Click link button
+        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        await linkButton.click();
+        
+        // Wait for animation
+        await page.waitForTimeout(100);
+
+        // Verify toolbar state and classes are maintained
+        await expect(toolbar).toBeVisible();
+        for (const className of initialClasses) {
+            await expect(toolbar).toHaveClass(new RegExp(className));
+        }
+        
+        // Take screenshot
+        await expect(toolbar).toHaveScreenshot('link-toolbar-position-maintained.png');
+    });
+
+    test('Link toolbar moves to selection when editing existing link', async ({ page }) => {
+        const editor = await page.locator('.editable-content');
+        await editor.waitFor({ state: 'visible' });
+        
+        // First create a link
+        await editor.evaluate(() => {
+            const p = document.createElement('p');
+            const a = document.createElement('a');
+            a.href = 'https://example.com';
+            a.textContent = 'Example Link';
+            p.appendChild(a);
+            p.appendChild(document.createTextNode(' Some text after the link.'));
+            document.querySelector('.editable-content')?.appendChild(p);
+        });
+
+        // Wait for the link to be added
+        await page.waitForTimeout(100);
+
+        // Select the link text
+        await editor.evaluate(() => {
+            const link = document.querySelector('.editable-content a');
+            if (!link) return;
+            
+            const range = document.createRange();
+            range.selectNodeContents(link);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            link.dispatchEvent(mouseupEvent);
+            document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+        });
+
+        const toolbar = await page.locator('#default-toolbar');
+        await expect(toolbar).toBeVisible();
+
+        // Get the link's position
+        const linkPosition = await editor.evaluate(() => {
+            const link = document.querySelector('.editable-content a');
+            return link?.getBoundingClientRect();
+        });
+
+        if (!linkPosition) throw new Error('Could not get link position');
+
+        // Get toolbar position
+        const toolbarPosition = await toolbar.boundingBox();
+        if (!toolbarPosition) throw new Error('Could not get toolbar position');
+
+        // Verify toolbar is in a reasonable position relative to the link
+        const verticalDistance = Math.min(
+            Math.abs(toolbarPosition.y + toolbarPosition.height - linkPosition.top),
+            Math.abs(toolbarPosition.y - linkPosition.bottom)
+        );
+        const verticalTolerance = 100; // Allow reasonable vertical variation
+        expect(verticalDistance).toBeLessThanOrEqual(verticalTolerance);
+
+        // Verify horizontal alignment
+        const linkCenter = linkPosition.left + (linkPosition.width / 2);
+        const toolbarCenter = toolbarPosition.x + (toolbarPosition.width / 2);
+        const horizontalTolerance = 150; // Allow reasonable horizontal variation
+        expect(Math.abs(toolbarCenter - linkCenter)).toBeLessThanOrEqual(horizontalTolerance);
+        
+        // Verify toolbar has correct classes
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+        
+        // Take screenshot
+        await expect(toolbar).toHaveScreenshot('link-toolbar-at-selection.png');
+    });
+
+    test('Fixed toolbar maintains position when editing new link', async ({ page }) => {
+        // Navigate to fixed toolbar example
+        await page.goto('http://localhost:3000/examples/fixed-toolbar.html');
+        await page.waitForSelector('.content', { state: 'visible' });
+
+        // Initially should be fixed at top
+        const toolbar = await page.locator('#fixed-toolbar');
+        await expect(toolbar).toBeVisible();
+        await expect(toolbar).toHaveClass(/fixed-position/);
+
+        // Take screenshot of initial state
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-initial.png' });
+
+        // Select text in the middle of the content
+        await page.evaluate(() => {
+            const content = document.querySelector('.content');
+            if (!content) return;
+            
+            const paragraphs = content.querySelectorAll('p');
+            const middleParagraph = paragraphs[Math.floor(paragraphs.length / 2)];
+            if (!middleParagraph) return;
+            
+            const range = document.createRange();
+            range.selectNodeContents(middleParagraph);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            middleParagraph.dispatchEvent(mouseupEvent);
+            document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+        });
+
+        // Wait for toolbar animation to complete (300ms transition + buffer)
+        await page.waitForTimeout(500);
+
+        // After selection, should move to selection position
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+
+        // Take screenshot after selection
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-after-selection.png' });
+
+        // Click link button
+        const linkButton = await toolbar.locator('button[title="Add Link"]');
+        await linkButton.click();
+        
+        // Wait for animation
+        await page.waitForTimeout(500);
+
+        // Should maintain position at selection during link editing
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+        
+        // Take screenshot of link editing state
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-link-editing.png' });
+    });
+
+    test('Fixed toolbar stays with selection when editing existing link', async ({ page }) => {
+        // Navigate to fixed toolbar example
+        await page.goto('http://localhost:3000/examples/fixed-toolbar.html');
+        await page.waitForSelector('.content', { state: 'visible' });
+        
+        // Initially should be fixed at top
+        const toolbar = await page.locator('#fixed-toolbar');
+        await expect(toolbar).toBeVisible();
+        await expect(toolbar).toHaveClass(/fixed-position/);
+        
+        // Take screenshot of initial state
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-existing-initial.png', fullPage: true });
+        
+        // First create a link in a visible area
+        await page.evaluate(() => {
+            const content = document.querySelector('.content');
+            if (!content) return;
+            
+            // Add the link paragraph after the first paragraph
+            const firstP = content.querySelector('p');
+            const p = document.createElement('p');
+            const a = document.createElement('a');
+            a.href = 'https://example.com';
+            a.textContent = 'Example Link';
+            p.appendChild(a);
+            p.appendChild(document.createTextNode(' Some text after the link.'));
+            if (firstP) {
+                firstP.insertAdjacentElement('afterend', p);
+            } else {
+                content.appendChild(p);
+            }
+        });
+
+        // Wait for the link to be added and page to settle
+        await page.waitForTimeout(500);
+
+        // Ensure the link is in view
+        await page.evaluate(() => {
+            const link = document.querySelector('.content a');
+            if (link) {
+                link.scrollIntoView({ behavior: 'instant', block: 'center' });
+            }
+        });
+
+        // Wait for scroll to complete
+        await page.waitForTimeout(500);
+
+        // Select the link text
+        await page.evaluate(() => {
+            const link = document.querySelector('.content a');
+            if (!link) return;
+            
+            const range = document.createRange();
+            range.selectNodeContents(link);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            link.dispatchEvent(mouseupEvent);
+            document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+        });
+
+        // Wait for toolbar animation to complete (300ms transition + buffer)
+        await page.waitForTimeout(1000);
+
+        // After selection, should move to selection position
+        await expect(toolbar).toBeVisible();
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+
+        // Take screenshot after selecting link (full page to ensure we capture the toolbar)
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-existing-selected.png', fullPage: true });
+
+        // Verify link input is shown
+        const linkInput = await toolbar.locator('.toolbar-link-input');
+        await expect(linkInput).toBeVisible();
+        await expect(linkInput).toHaveClass(/active/);
+        
+        // Wait for any animations to complete
+        await page.waitForTimeout(1000);
+        
+        // Take screenshot of link editing state (full page to ensure we capture the toolbar)
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-existing-editing.png', fullPage: true });
+    });
+
+    test('Fixed toolbar maintains selection position during scroll with link editing', async ({ page }) => {
+        // Navigate to fixed toolbar example
+        await page.goto('http://localhost:3000/examples/fixed-toolbar.html');
+        await page.waitForSelector('.content', { state: 'visible' });
+
+        // Initially should be fixed at top
+        const toolbar = await page.locator('#fixed-toolbar');
+        await expect(toolbar).toBeVisible();
+        await expect(toolbar).toHaveClass(/fixed-position/);
+
+        // Take screenshot of initial state
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-scroll-initial.png', fullPage: true });
+
+        // Add some content to make the page scrollable
+        await page.evaluate(() => {
+            const content = document.querySelector('.content');
+            if (!content) return;
+            
+            // Add enough paragraphs to make the page scrollable
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('p');
+                p.textContent = `Paragraph ${i + 1} - Lorem ipsum dolor sit amet. `.repeat(3);
+                if (i === 10) { // Add a link in the middle
+                    const a = document.createElement('a');
+                    a.href = 'https://example.com';
+                    a.textContent = 'Example Link';
+                    p.appendChild(a);
+                }
+                content.appendChild(p);
+            }
+        });
+
+        // Wait for content to be added
+        await page.waitForTimeout(500);
+
+        // Take screenshot before scrolling
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-scroll-before.png', fullPage: true });
+
+        // Scroll to the middle where the link is and ensure it's centered
+        await page.evaluate(() => {
+            const link = document.querySelector('.content a');
+            if (link) {
+                const rect = link.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                const scrollTo = window.pageYOffset + rect.top - (windowHeight / 2);
+                window.scrollTo({ top: scrollTo, behavior: 'instant' });
+            }
+        });
+
+        // Wait for scroll to complete
+        await page.waitForTimeout(1000);
+
+        // Take screenshot after scrolling but before selection
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-scroll-after.png', fullPage: true });
+
+        // Simulate real user selection behavior
+        await page.evaluate(() => {
+            const link = document.querySelector('.content a');
+            if (!link) return;
+            
+            const rect = link.getBoundingClientRect();
+            
+            // Start selection with mousedown at the start of the link
+            const mousedownEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: rect.left,
+                clientY: rect.top + (rect.height / 2)
+            });
+            link.dispatchEvent(mousedownEvent);
+            
+            // Simulate mouse movement (dragging)
+            const mousemoveEvent = new MouseEvent('mousemove', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: rect.right,
+                clientY: rect.top + (rect.height / 2)
+            });
+            document.dispatchEvent(mousemoveEvent);
+            
+            // Create selection
+            const range = document.createRange();
+            range.selectNodeContents(link);
+            const selection = window.getSelection()!;
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // End selection with mouseup
+            const mouseupEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: rect.right,
+                clientY: rect.top + (rect.height / 2)
+            });
+            document.dispatchEvent(mouseupEvent);
+            
+            // Ensure selection change event is fired
+            document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
+        });
+
+        // Wait for initial toolbar animation
+        await page.waitForTimeout(1000);
+
+        // Verify toolbar is visible and has correct classes
+        await expect(toolbar).toBeVisible();
+        await expect(toolbar).toHaveClass(/following-selection/);
+        await expect(toolbar).not.toHaveClass(/fixed-position/);
+
+        // Wait for toolbar to reach its final position
+        await page.waitForFunction(() => {
+            const toolbar = document.querySelector('#fixed-toolbar');
+            const link = document.querySelector('.content a');
+            if (!toolbar || !link) return false;
+            
+            const toolbarRect = toolbar.getBoundingClientRect();
+            const linkRect = link.getBoundingClientRect();
+            
+            // Toolbar should be positioned above the link
+            const isAboveLink = toolbarRect.bottom <= linkRect.top + 2; // Add small tolerance
+            // Toolbar should be horizontally centered with the link
+            const toolbarCenter = toolbarRect.left + (toolbarRect.width / 2);
+            const linkCenter = linkRect.left + (linkRect.width / 2);
+            const isHorizontallyCentered = Math.abs(toolbarCenter - linkCenter) < 50;
+            
+            console.log('Toolbar position check:', {
+                toolbarBottom: toolbarRect.bottom,
+                linkTop: linkRect.top,
+                isAboveLink,
+                toolbarCenter,
+                linkCenter,
+                isHorizontallyCentered
+            });
+            
+            return isAboveLink && isHorizontallyCentered;
+        }, { timeout: 5000 }); // Give it up to 5 seconds to reach position
+
+        // Take a few screenshots to see the animation
+        for (let i = 1; i <= 3; i++) {
+            await page.waitForTimeout(100);
+            await page.screenshot({ 
+                path: `tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-scroll-selected-${i}.png`,
+                fullPage: true 
+            });
+        }
+
+        // Take final screenshot
+        await page.screenshot({ path: 'tests/visual/toolbar.visual.test.ts-snapshots/fixed-toolbar-scroll-selected.png', fullPage: true });
+    });
 }); 

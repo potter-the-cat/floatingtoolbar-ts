@@ -88,20 +88,30 @@ export function handleSelection(
             return;
         }
         
-        // Clear selection state
-        this.state.currentSelection = null;
-        this.state.selectedText = '';
-        this.state.selectionRange = null;
-        this.state.isVisible = false;
-        this.state.existingLink = null;
-        this.state.currentView = 'initial';
-        this.clearFormatButtonStates();
-        
-        // Remove width constraint and hide toolbar
-        if (this.elements.toolbar) {
-            this.elements.toolbar.style.removeProperty('--toolbar-width');
-            this.elements.toolbar.classList.remove('following-selection');
-            this.elements.toolbar.classList.remove('visible');
+        // Clear selection state but preserve position if editing a link
+        if (this.state.currentView === 'linkInput') {
+            this.state.currentSelection = null;
+            this.state.selectedText = '';
+            this.state.selectionRange = null;
+            // Keep isVisible true and preserve existingLink
+            this.state.isVisible = true;
+            // Don't reset currentView or existingLink
+        } else {
+            // Full reset for non-link states
+            this.state.currentSelection = null;
+            this.state.selectedText = '';
+            this.state.selectionRange = null;
+            this.state.isVisible = false;
+            this.state.existingLink = null;
+            this.state.currentView = 'initial';
+            this.clearFormatButtonStates();
+            
+            // Remove width constraint and hide toolbar
+            if (this.elements.toolbar) {
+                this.elements.toolbar.style.removeProperty('--toolbar-width');
+                this.elements.toolbar.classList.remove('following-selection');
+                this.elements.toolbar.classList.remove('visible');
+            }
         }
         
         this.updateView();
@@ -140,9 +150,12 @@ export function handleSelection(
             if (this.elements.linkInput) {
                 this.elements.linkInput.value = existingLink.href;
             }
-            // Ensure toolbar stays visible for existing links
+            // Ensure toolbar stays visible and follows selection for existing links
             if (this.elements.toolbar) {
                 this.elements.toolbar.classList.add('visible');
+                this.elements.toolbar.classList.add('following-selection');
+                this.elements.toolbar.classList.remove('fixed-position');
+                this.state.isAtFixedPosition = false;
             }
         } else {
             this.state.existingLink = null;

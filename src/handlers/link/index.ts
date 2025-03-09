@@ -18,8 +18,19 @@ export function handleLinkButtonClick(
     // Set processing flag
     this.state.isProcessingLinkClick = true;
 
-    // Store current width before switching views
-    const currentWidth = this.elements.toolbar?.getBoundingClientRect().width;
+    // Store current width and position before switching views
+    if (this.elements.toolbar) {
+        const rect = this.elements.toolbar.getBoundingClientRect();
+        this.elements.toolbar.style.setProperty('--toolbar-width', `${rect.width}px`);
+        
+        // Preserve the current position if not at fixed position
+        if (!this.state.isAtFixedPosition) {
+            const currentTop = this.elements.toolbar.style.top;
+            const currentLeft = this.elements.toolbar.style.left;
+            this.elements.toolbar.dataset.preservedTop = currentTop;
+            this.elements.toolbar.dataset.preservedLeft = currentLeft;
+        }
+    }
     
     // Check for existing link
     const selection = window.getSelection();
@@ -40,6 +51,17 @@ export function handleLinkButtonClick(
     
     // Update state
     this.state.currentView = 'linkInput';
+    this.state.isVisible = true;
+
+    // Restore preserved position if available
+    if (this.elements.toolbar && !this.state.isAtFixedPosition) {
+        const preservedTop = this.elements.toolbar.dataset.preservedTop;
+        const preservedLeft = this.elements.toolbar.dataset.preservedLeft;
+        if (preservedTop && preservedLeft) {
+            this.elements.toolbar.style.top = preservedTop;
+            this.elements.toolbar.style.left = preservedLeft;
+        }
+    }
 
     // Update view
     this.updateView();
@@ -76,7 +98,8 @@ export function handleLinkButtonClick(
                 const minWidth = inputWidth + (buttonWidth * buttonCount) + padding + gaps;
                 
                 // Set a new width for the link input view, ensuring it's not smaller than needed
-                const linkInputWidth = Math.max(minWidth, Math.min(currentWidth || 0, 450));
+                const currentToolbarWidth = this.elements.toolbar?.getBoundingClientRect().width || 0;
+                const linkInputWidth = Math.max(minWidth, Math.min(currentToolbarWidth, 450));
                 if (this.elements.toolbar) {
                     this.elements.toolbar.style.setProperty('--toolbar-width', `${linkInputWidth}px`);
                 }

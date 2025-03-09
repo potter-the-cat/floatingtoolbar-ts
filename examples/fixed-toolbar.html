@@ -108,7 +108,7 @@
         }
 
         /* Toolbar Styles */
-        #floating-toolbar {
+        #fixed-toolbar {
             background: #000000;
             border-radius: 4px;
             padding: 6px;
@@ -128,7 +128,7 @@
         }
 
         /* Chevron styles */
-        #floating-toolbar::after {
+        #fixed-toolbar::after {
             content: '';
             position: absolute;
             left: 50%;
@@ -144,7 +144,7 @@
             will-change: top, bottom;
         }
 
-        #floating-toolbar.below::after {
+        #fixed-toolbar.below::after {
             border-top: none;
             border-bottom: 6px solid #000000;
             bottom: auto;
@@ -152,13 +152,18 @@
         }
 
         /* Style for fixed position at top */
-        #floating-toolbar.fixed-position {
+        #fixed-toolbar.fixed-position {
             white-space: nowrap;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         /* Style for floating position (when selecting text) */
-        #floating-toolbar:not(.fixed-position) {
+        #fixed-toolbar:not(.fixed-position) {
             max-width: min(100vw - 40px, 800px);
+            position: absolute;
         }
 
         .toolbar-initial {
@@ -176,7 +181,7 @@
         }
 
         /* Only allow wrapping when floating and space is limited */
-        #floating-toolbar:not(.fixed-position) .toolbar-initial {
+        #fixed-toolbar:not(.fixed-position) .toolbar-initial {
             flex-wrap: wrap;
             row-gap: 8px;
         }
@@ -191,7 +196,7 @@
         }
 
         /* Button Styles */
-        #floating-toolbar button {
+        #fixed-toolbar button {
             background: transparent;
             border: none;
             color: white;
@@ -210,15 +215,15 @@
             transition: background-color 0.2s ease;
         }
 
-        #floating-toolbar button .material-icons {
+        #fixed-toolbar button .material-icons {
             font-size: 20px;
         }
 
-        #floating-toolbar button:hover {
+        #fixed-toolbar button:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        #floating-toolbar button.active {
+        #fixed-toolbar button.active {
             background: rgba(255, 255, 255, 0.2);
         }
 
@@ -231,7 +236,7 @@
             flex-wrap: wrap;
         }
 
-        #floating-toolbar #link-input {
+        #fixed-toolbar #link-input {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 4px;
@@ -241,7 +246,7 @@
             min-width: 200px;
         }
 
-        #floating-toolbar #link-input:focus {
+        #fixed-toolbar #link-input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.4);
         }
@@ -252,7 +257,7 @@
         <!-- Separate toolbar section -->
         <div class="toolbar-section">
             <div class="toolbar-container">
-                <div id="floating-toolbar" class="fixed-position">
+                <div id="fixed-toolbar" class="fixed-position">
                     <div class="toolbar-initial">
                         <!-- Text formatting group -->
                         <div class="toolbar-group">
@@ -363,8 +368,8 @@
                 selector: '.content',
                 mode: 'fixed',
                 offset: { x: 0, y: 10 },
-                toolbarId: 'floating-toolbar',
-                debug: false, // Set to true to enable debug logging
+                toolbarId: 'fixed-toolbar',
+                debug: true, // Set to true to enable debug logging
                 buttons: {
                     // Text formatting options
                     text: {

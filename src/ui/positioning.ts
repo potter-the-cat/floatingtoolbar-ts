@@ -150,6 +150,30 @@ function handleFixedMode(
         return;
     }
 
+    // Handle link editing states
+    if (state.currentView === 'linkInput') {
+        if (state.existingLink && state.selectionRect) {
+            // For existing links, position at selection
+            handleFixedModeWithSelection(
+                config,
+                state,
+                elements,
+                contentArea,
+                toolbarContainer as HTMLElement,
+                contentWrapper as HTMLElement,
+                debug
+            );
+            return;
+        } else if (!state.isAtFixedPosition) {
+            // For new links being edited, preserve current position
+            debug('Fixed Mode: Preserving position during link editing', {
+                currentView: state.currentView,
+                existingLink: state.existingLink
+            });
+            return;
+        }
+    }
+
     if (!hasSelection) {
         debug('Fixed Mode: No selection - resetting to default position', {
             isFixed: state.isFixed,
