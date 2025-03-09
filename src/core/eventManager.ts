@@ -192,6 +192,12 @@ export function setupEventListeners(
         bulletList: { element: elements.bulletListButton, enabled: config.buttons.list?.bullet },
         numberList: { element: elements.numberListButton, enabled: config.buttons.list?.number },
         
+        // Alignment
+        alignLeft: { element: elements.alignLeftButton, enabled: config.buttons.alignment?.left },
+        alignCenter: { element: elements.alignCenterButton, enabled: config.buttons.alignment?.center },
+        alignRight: { element: elements.alignRightButton, enabled: config.buttons.alignment?.right },
+        alignJustify: { element: elements.alignJustifyButton, enabled: config.buttons.alignment?.justify },
+        
         // Font selection
         font: { element: elements.fontButton, enabled: config.buttons.font?.enabled }
     };

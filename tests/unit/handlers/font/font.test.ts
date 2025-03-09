@@ -145,7 +145,11 @@ describe('FontHandler', () => {
             strikethrough: { element: document.createElement('button'), enabled: true },
             subscript: { element: document.createElement('button'), enabled: true },
             superscript: { element: document.createElement('button'), enabled: true },
-            font: { element: document.createElement('button'), enabled: true }
+            font: { element: document.createElement('button'), enabled: true },
+            alignLeft: { element: document.createElement('button'), enabled: true },
+            alignCenter: { element: document.createElement('button'), enabled: true },
+            alignRight: { element: document.createElement('button'), enabled: true },
+            alignJustify: { element: document.createElement('button'), enabled: true }
         };
 
         mockElements = {
@@ -176,6 +180,10 @@ describe('FontHandler', () => {
             bulletListButton: document.createElement('button'),
             numberListButton: document.createElement('button'),
             fontList: document.createElement('div'),
+            alignLeftButton: document.createElement('button'),
+            alignCenterButton: document.createElement('button'),
+            alignRightButton: document.createElement('button'),
+            alignJustifyButton: document.createElement('button'),
             buttons: mockButtons
         };
 

@@ -188,6 +188,12 @@ test.describe('Font Visual Tests', () => {
                     link: {
                         url: false
                     },
+                    alignment: {
+                        left: false,
+                        center: false,
+                        right: false,
+                        justify: false
+                    },
                     font: {
                         enabled: true
                     }

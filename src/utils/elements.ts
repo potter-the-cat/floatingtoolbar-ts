@@ -29,7 +29,11 @@ export function cacheElements(
         strikethrough: { element: null, enabled: false },
         subscript: { element: null, enabled: false },
         superscript: { element: null, enabled: false },
-        font: { element: null, enabled: false }
+        font: { element: null, enabled: false },
+        alignLeft: { element: null, enabled: false },
+        alignCenter: { element: null, enabled: false },
+        alignRight: { element: null, enabled: false },
+        alignJustify: { element: null, enabled: false }
     };
 
     if (!container || !toolbar) {
@@ -65,6 +69,10 @@ export function cacheElements(
             numberListButton: null,
             fontButton: null,
             fontList: null,
+            alignLeftButton: null,
+            alignCenterButton: null,
+            alignRightButton: null,
+            alignJustifyButton: null,
             buttons: emptyButtonElements
         };
     }
@@ -97,6 +105,10 @@ export function cacheElements(
         numberListButton: toolbar.querySelector(`#${config.toolbarId}-number-list-button`),
         fontButton: toolbar.querySelector(`#${config.toolbarId}-font-button`),
         fontList: toolbar.querySelector(`#${config.toolbarId}-font-list`),
+        alignLeftButton: toolbar.querySelector(`#${config.toolbarId}-align-left-button`),
+        alignCenterButton: toolbar.querySelector(`#${config.toolbarId}-align-center-button`),
+        alignRightButton: toolbar.querySelector(`#${config.toolbarId}-align-right-button`),
+        alignJustifyButton: toolbar.querySelector(`#${config.toolbarId}-align-justify-button`),
         buttons: emptyButtonElements
     };
 

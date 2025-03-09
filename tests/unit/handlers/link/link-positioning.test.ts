@@ -54,6 +54,10 @@ describe('Link Toolbar Positioning', () => {
             numberListButton: document.createElement('button'),
             fontButton: document.createElement('button'),
             fontList: document.createElement('div'),
+            alignLeftButton: document.createElement('button'),
+            alignCenterButton: document.createElement('button'),
+            alignRightButton: document.createElement('button'),
+            alignJustifyButton: document.createElement('button'),
             linkInput,
             buttons: {
                 bold: { element: document.createElement('button'), enabled: true },
@@ -70,7 +74,11 @@ describe('Link Toolbar Positioning', () => {
                 hr: { element: document.createElement('button'), enabled: true },
                 bulletList: { element: document.createElement('button'), enabled: true },
                 numberList: { element: document.createElement('button'), enabled: true },
-                font: { element: document.createElement('button'), enabled: true }
+                font: { element: document.createElement('button'), enabled: true },
+                alignLeft: { element: document.createElement('button'), enabled: true },
+                alignCenter: { element: document.createElement('button'), enabled: true },
+                alignRight: { element: document.createElement('button'), enabled: true },
+                alignJustify: { element: document.createElement('button'), enabled: true }
             }
         };
 

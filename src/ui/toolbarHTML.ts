@@ -106,11 +106,38 @@ export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): s
                         ` : ''}
                     </div>
                 ` : ''}
+                
+                <!-- Alignment group -->
+                ${(config.buttons.alignment?.left || config.buttons.alignment?.center || 
+                   config.buttons.alignment?.right || config.buttons.alignment?.justify) ? `
+                    <div class="toolbar-group">
+                        ${config.buttons.alignment?.left ? `
+                            <button id="${config.toolbarId}-align-left-button" title="Align Left">
+                                <span class="material-icons" data-icon="format_align_left">format_align_left</span>
+                            </button>
+                        ` : ''}
+                        ${config.buttons.alignment?.center ? `
+                            <button id="${config.toolbarId}-align-center-button" title="Align Center">
+                                <span class="material-icons" data-icon="format_align_center">format_align_center</span>
+                            </button>
+                        ` : ''}
+                        ${config.buttons.alignment?.right ? `
+                            <button id="${config.toolbarId}-align-right-button" title="Align Right">
+                                <span class="material-icons" data-icon="format_align_right">format_align_right</span>
+                            </button>
+                        ` : ''}
+                        ${config.buttons.alignment?.justify ? `
+                            <button id="${config.toolbarId}-align-justify-button" title="Justify">
+                                <span class="material-icons" data-icon="format_align_justify">format_align_justify</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                ` : ''}
 
-                <!-- Link group -->
+                <!-- Link button -->
                 ${config.buttons.link?.url ? `
                     <div class="toolbar-group">
-                        <button id="${config.toolbarId}-link-button" title="Add Link">
+                        <button id="${config.toolbarId}-link-button" title="Link">
                             <span class="material-icons" data-icon="link">link</span>
                         </button>
                     </div>

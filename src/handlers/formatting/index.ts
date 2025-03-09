@@ -34,6 +34,18 @@ export function handleFormat(
         case 'superscript':
             command = 'superscript';
             break;
+        case 'alignLeft':
+            command = 'justifyLeft';
+            break;
+        case 'alignCenter':
+            command = 'justifyCenter';
+            break;
+        case 'alignRight':
+            command = 'justifyRight';
+            break;
+        case 'alignJustify':
+            command = 'justifyFull';
+            break;
         case 'h1':
         case 'h2':
             handleHeading.call(this, format);
@@ -354,7 +366,11 @@ export function updateFormatButtonStates(
         subscript: this.elements.subscriptButton,
         superscript: this.elements.superscriptButton,
         insertUnorderedList: this.elements.bulletListButton,
-        insertOrderedList: this.elements.numberListButton
+        insertOrderedList: this.elements.numberListButton,
+        justifyLeft: this.elements.alignLeftButton,
+        justifyCenter: this.elements.alignCenterButton,
+        justifyRight: this.elements.alignRightButton,
+        justifyFull: this.elements.alignJustifyButton
     };
 
     // Check each format
@@ -413,7 +429,11 @@ export function clearFormatButtonStates(
         subscript: this.elements.subscriptButton,
         superscript: this.elements.superscriptButton,
         insertUnorderedList: this.elements.bulletListButton,
-        insertOrderedList: this.elements.numberListButton
+        insertOrderedList: this.elements.numberListButton,
+        justifyLeft: this.elements.alignLeftButton,
+        justifyCenter: this.elements.alignCenterButton,
+        justifyRight: this.elements.alignRightButton,
+        justifyFull: this.elements.alignJustifyButton
     };
 
     // Remove active class from all format buttons that exist

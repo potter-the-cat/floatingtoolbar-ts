@@ -32,6 +32,13 @@ export interface LinkButtons {
     url?: boolean;
 }
 
+export interface AlignmentButtons {
+    left?: boolean;
+    center?: boolean;
+    right?: boolean;
+    justify?: boolean;
+}
+
 export interface FontButtons {
     enabled: boolean;
 }
@@ -52,6 +59,7 @@ export interface ToolbarButtons {
     list?: ListButtons;
     link?: LinkButtons;
     font?: FontButtons;
+    alignment?: AlignmentButtons;
 }
 
 export interface ToolbarOffset {
@@ -134,6 +142,10 @@ export interface ToolbarElements {
     numberListButton: HTMLButtonElement | null;
     fontButton: HTMLButtonElement | null;
     fontList: HTMLDivElement | null;
+    alignLeftButton: HTMLButtonElement | null;
+    alignCenterButton: HTMLButtonElement | null;
+    alignRightButton: HTMLButtonElement | null;
+    alignJustifyButton: HTMLButtonElement | null;
     buttons: ButtonElements;
 }
 
@@ -168,6 +180,12 @@ export interface ButtonConfig {
     font: {
         enabled: boolean;
     };
+    alignment: {
+        left: boolean;
+        center: boolean;
+        right: boolean;
+        justify: boolean;
+    };
 }
 
 export type ButtonConfigs = Record<FormatType, ButtonConfig>;
@@ -187,7 +205,11 @@ export type FormatType =
     | 'hr'
     | 'bulletList'
     | 'numberList'
-    | 'font';
+    | 'font'
+    | 'alignLeft'
+    | 'alignCenter'
+    | 'alignRight'
+    | 'alignJustify';
 
 declare global {
     interface Window {
@@ -358,6 +380,12 @@ export const defaultButtonConfig: ButtonConfig = {
     },
     font: {
         enabled: false
+    },
+    alignment: {
+        left: false,
+        center: false,
+        right: false,
+        justify: false
     }
 };
 

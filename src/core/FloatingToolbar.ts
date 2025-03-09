@@ -107,6 +107,12 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
                 },
                 font: {
                     enabled: true
+                },
+                alignment: {
+                    left: true,
+                    center: true,
+                    right: true,
+                    justify: true
                 }
             },
             offset: { x: 0, y: 10 },
@@ -185,6 +191,10 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
             numberListButton: null,
             fontButton: null,
             fontList: null,
+            alignLeftButton: null,
+            alignCenterButton: null,
+            alignRightButton: null,
+            alignJustifyButton: null,
             buttons: {
                 bold: { element: null, enabled: undefined },
                 italic: { element: null, enabled: undefined },
@@ -200,7 +210,11 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
                 hr: { element: null, enabled: undefined },
                 bulletList: { element: null, enabled: undefined },
                 numberList: { element: null, enabled: undefined },
-                font: { element: null, enabled: undefined }
+                font: { element: null, enabled: undefined },
+                alignLeft: { element: null, enabled: undefined },
+                alignCenter: { element: null, enabled: undefined },
+                alignRight: { element: null, enabled: undefined },
+                alignJustify: { element: null, enabled: undefined }
             }
         };
 
