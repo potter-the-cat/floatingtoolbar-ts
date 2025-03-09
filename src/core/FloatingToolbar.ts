@@ -107,7 +107,7 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
                 }
             },
             offset: { x: 0, y: 10 },
-            fixedPosition: {
+            persistentPosition: {
                 top: 0,
                 center: true
             },
@@ -122,32 +122,41 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
             ...config,
             selector: config.content || config.selector || defaultConfig.selector,
             toolbarId: config.toolbarId || defaultConfig.toolbarId,
-            resizeDebounceMs: config.resizeDebounceMs || defaultConfig.resizeDebounceMs
+            resizeDebounceMs: config.resizeDebounceMs || defaultConfig.resizeDebounceMs,
+            persistentPosition: {
+                top: 0,
+                center: true,
+                ...config.persistentPosition
+            }
         };
 
         // Initialize state
         this.state = {
-            isVisible: this.config.mode === 'fixed',
-            isFixed: this.config.mode === 'fixed',
-            isAtFixedPosition: this.config.mode === 'fixed',
+            isVisible: this.config.mode === 'persistent',
+            isPersistent: this.config.mode === 'persistent',
+            isAtPersistentPosition: this.config.mode === 'persistent',
             currentView: 'initial',
-            currentSelection: null,
-            selectedText: '',
-            selectionRange: null,
-            position: { x: 0, y: 0 },
+            selectedText: null,
             selectionRect: null,
+            selectionRange: null,
+            currentSelection: null,
             existingLink: null,
-            resizeTimeout: undefined,
-            activeFormats: new Set<string>(),
-            dropCapElements: new Set<HTMLElement>(),
+            linkUrl: '',
+            isValidUrl: false,
+            toolbarRect: null,
+            wrapperRect: null,
+            spaceAbove: 0,
+            spaceBelow: 0,
+            isProcessingLinkClick: false,
             positionObserver: null,
-            isProcessingLinkClick: false
+            activeFormats: new Set(),
+            dropCapElements: new Set()
         };
 
         // Initialize elements cache
         this.elements = {
             toolbar: null,
-            toolbarContainer: null,
+            container: null,
             toolbarInitial: null,
             toolbarLinkInput: null,
             linkButton: null,
@@ -169,7 +178,23 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
             quoteButton: null,
             hrButton: null,
             bulletListButton: null,
-            numberListButton: null
+            numberListButton: null,
+            buttons: {
+                bold: { element: null, enabled: undefined },
+                italic: { element: null, enabled: undefined },
+                underline: { element: null, enabled: undefined },
+                strikethrough: { element: null, enabled: undefined },
+                subscript: { element: null, enabled: undefined },
+                superscript: { element: null, enabled: undefined },
+                h1: { element: null, enabled: undefined },
+                h2: { element: null, enabled: undefined },
+                dropCap: { element: null, enabled: undefined },
+                code: { element: null, enabled: undefined },
+                quote: { element: null, enabled: undefined },
+                hr: { element: null, enabled: undefined },
+                bulletList: { element: null, enabled: undefined },
+                numberList: { element: null, enabled: undefined }
+            }
         };
 
         // Bind methods

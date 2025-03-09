@@ -9,7 +9,7 @@ export function cacheElements(
 
     const elements: ToolbarElements = {
         toolbar: document.getElementById(config.toolbarId),
-        toolbarContainer: document.querySelector('.toolbar-container'),
+        container: document.querySelector('.toolbar-container'),
         toolbarInitial: null,
         toolbarLinkInput: null,
         linkButton: null,
@@ -31,7 +31,23 @@ export function cacheElements(
         quoteButton: null,
         hrButton: null,
         bulletListButton: null,
-        numberListButton: null
+        numberListButton: null,
+        buttons: {
+            bold: { element: null, enabled: undefined },
+            italic: { element: null, enabled: undefined },
+            underline: { element: null, enabled: undefined },
+            strikethrough: { element: null, enabled: undefined },
+            subscript: { element: null, enabled: undefined },
+            superscript: { element: null, enabled: undefined },
+            h1: { element: null, enabled: undefined },
+            h2: { element: null, enabled: undefined },
+            dropCap: { element: null, enabled: undefined },
+            code: { element: null, enabled: undefined },
+            quote: { element: null, enabled: undefined },
+            hr: { element: null, enabled: undefined },
+            bulletList: { element: null, enabled: undefined },
+            numberList: { element: null, enabled: undefined }
+        }
     };
 
     if (!elements.toolbar) {

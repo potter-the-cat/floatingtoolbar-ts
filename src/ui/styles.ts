@@ -93,7 +93,7 @@ export const requiredStyles = `
                     flex-shrink: 0;
                 }
 
-                .toolbar-container .floating-toolbar:not(.fixed-position):not(.following-selection) {
+                .toolbar-container .floating-toolbar:not(.persistent-position):not(.following-selection) {
                     max-width: min(100vw - 40px, 800px);
                 }
 
@@ -129,11 +129,11 @@ export const requiredStyles = `
                     background: var(--toolbar-active, rgba(255, 255, 255, 0.2));
                 }
 
-                .toolbar-container .floating-toolbar.fixed-position {
+                .toolbar-container .floating-toolbar.persistent-position {
                     white-space: nowrap;
                 }
 
-                .toolbar-container .floating-toolbar:not(.fixed-position) {
+                .toolbar-container .floating-toolbar:not(.persistent-position) {
                     max-width: min(100vw - 40px, 800px);
                 }
 
@@ -154,7 +154,7 @@ export const requiredStyles = `
                     flex-shrink: 0;
                 }
 
-                .toolbar-container .floating-toolbar:not(.fixed-position) .toolbar-initial {
+                .toolbar-container .floating-toolbar:not(.persistent-position) .toolbar-initial {
                     flex-wrap: nowrap;
                 }
 

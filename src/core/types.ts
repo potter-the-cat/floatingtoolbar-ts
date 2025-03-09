@@ -45,36 +45,42 @@ export interface ToolbarOffset {
     y: number;
 }
 
-export interface FixedPosition {
+export interface PersistentPosition {
     top: number;
-    center: boolean;
+    center?: boolean;
 }
 
 export interface ToolbarConfig {
     container: string;
     content: string;
     selector?: string;
-    mode: 'floating' | 'fixed';
+    mode: 'floating' | 'persistent';
     theme: string;
     debug: boolean;
     useExistingToolbar: boolean;
     buttons: ToolbarButtons;
     offset: ToolbarOffset;
-    fixedPosition: FixedPosition;
+    persistentPosition: PersistentPosition;
     toolbarId: string;
     resizeDebounceMs: number;
 }
 
 export interface ToolbarState {
     isVisible: boolean;
-    isFixed: boolean;
-    isAtFixedPosition: boolean;
+    isPersistent: boolean;
+    isAtPersistentPosition: boolean;
     currentView: 'initial' | 'linkInput' | null;
     selectedText: string | null;
     selectionRect: DOMRect | null;
     selectionRange: Range | null;
     currentSelection: Selection | null;
     existingLink: HTMLAnchorElement | null;
+    linkUrl: string;
+    isValidUrl: boolean;
+    toolbarRect: DOMRect | null;
+    wrapperRect: DOMRect | null;
+    spaceAbove: number;
+    spaceBelow: number;
     isProcessingLinkClick: boolean;
     positionObserver: IntersectionObserver | null;
     position?: { x: number; y: number };
@@ -85,7 +91,7 @@ export interface ToolbarState {
 
 export interface ToolbarElements {
     toolbar: HTMLElement | null;
-    toolbarContainer: HTMLElement | null;
+    container: HTMLElement | null;
     toolbarInitial: HTMLElement | null;
     toolbarLinkInput: HTMLElement | null;
     linkButton: HTMLButtonElement | null;
@@ -108,6 +114,7 @@ export interface ToolbarElements {
     hrButton: HTMLButtonElement | null;
     bulletListButton: HTMLButtonElement | null;
     numberListButton: HTMLButtonElement | null;
+    buttons: ButtonElements;
 }
 
 export interface ButtonConfig {
@@ -242,7 +249,7 @@ export interface InitializeContext extends BaseHandlerContext {
 
 export interface PositionConfig {
     offset: { x: number; y: number };
-    fixedPosition: {
+    persistentPosition: {
         top: number;
         center: boolean;
     };
@@ -251,7 +258,7 @@ export interface PositionConfig {
 export interface FloatingToolbarConfig extends ToolbarConfig {
     container: string;
     content: string;
-    mode: 'floating' | 'fixed';
+    mode: 'floating' | 'persistent';
     theme: 'dark' | 'light';
     debug: boolean;
     useExistingToolbar: boolean;
@@ -267,3 +274,28 @@ export interface ButtonElement {
 }
 
 export type ButtonElements = Record<FormatType, ButtonElement>;
+
+export const defaultConfig: ToolbarConfig = {
+    container: '',
+    content: '',
+    selector: '',
+    mode: 'floating',
+    theme: '',
+    debug: false,
+    useExistingToolbar: false,
+    buttons: {
+        text: {},
+        script: {},
+        heading: {},
+        special: {},
+        list: {},
+        link: {}
+    },
+    offset: { x: 0, y: 0 },
+    persistentPosition: {
+        top: 0,
+        center: true
+    },
+    toolbarId: '',
+    resizeDebounceMs: 0
+};

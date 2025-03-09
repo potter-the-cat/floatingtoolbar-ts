@@ -26,7 +26,7 @@ export function handleLinkButtonClick(
         this.elements.toolbar.style.setProperty('--toolbar-width', `${rect.width}px`);
         
         // Ensure toolbar is centered using transforms
-        if (!this.state.isAtFixedPosition) {
+        if (!this.state.isAtPersistentPosition) {
             const contentWrapper = this.elements.toolbar.closest('.content-wrapper');
             if (contentWrapper) {
                 const wrapperRect = contentWrapper.getBoundingClientRect();
@@ -66,7 +66,7 @@ export function handleLinkButtonClick(
     this.state.isVisible = true;
 
     // Restore vertical position if needed
-    if (this.elements.toolbar && !this.state.isAtFixedPosition) {
+    if (this.elements.toolbar && !this.state.isAtPersistentPosition) {
         const preservedTop = this.elements.toolbar.dataset.preservedTop;
         if (preservedTop) {
             this.elements.toolbar.style.top = preservedTop;
@@ -177,8 +177,15 @@ export function handleSaveLinkClick(
             this.state.existingLink = null;
             this.elements.linkInput.value = '';
             
-            // Reset view state to initial
+            // Reset view state to initial and set persistent position
             this.state.currentView = 'initial';
+            this.state.isAtPersistentPosition = true;
+
+            // Update toolbar classes for persistent position
+            if (this.elements.toolbar) {
+                this.elements.toolbar.classList.add('persistent-position');
+                this.elements.toolbar.classList.remove('following-selection');
+            }
 
             // Update view
             this.updateView();

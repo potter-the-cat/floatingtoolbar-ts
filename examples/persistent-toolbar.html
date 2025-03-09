@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Toolbar Demo</title>
+    <title>Persistent Toolbar Demo</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
@@ -108,7 +108,7 @@
         }
 
         /* Toolbar Styles */
-        #fixed-toolbar {
+        #persistent-toolbar {
             background: #000000;
             border-radius: 4px;
             padding: 6px;
@@ -129,7 +129,7 @@
         }
 
         /* Chevron styles */
-        #fixed-toolbar::after {
+        #persistent-toolbar::after {
             content: '';
             position: absolute;
             left: 50%;
@@ -145,7 +145,7 @@
             will-change: top, bottom;
         }
 
-        #fixed-toolbar.below::after {
+        #persistent-toolbar.below::after {
             border-top: none;
             border-bottom: 6px solid #000000;
             bottom: auto;
@@ -153,7 +153,7 @@
         }
 
         /* Style for fixed position at top */
-        #fixed-toolbar.fixed-position {
+        #persistent-toolbar.persistent-position {
             white-space: nowrap;
             position: fixed;
             top: 0;
@@ -162,7 +162,7 @@
         }
 
         /* Style for floating position (when selecting text) */
-        #fixed-toolbar:not(.fixed-position) {
+        #persistent-toolbar:not(.persistent-position) {
             max-width: min(100vw - 40px, 800px);
             position: absolute;
             left: 50%;
@@ -170,7 +170,7 @@
         }
 
         /* Style for link input mode */
-        #fixed-toolbar.following-selection {
+        #persistent-toolbar.following-selection {
             width: auto;
             min-width: min-content;
             left: 50%;
@@ -193,7 +193,7 @@
 
         /* Only allow wrapping when space is actually limited */
         @media (max-width: 600px) {
-            #fixed-toolbar:not(.fixed-position) .toolbar-initial {
+            #persistent-toolbar:not(.persistent-position) .toolbar-initial {
                 flex-wrap: wrap;
                 row-gap: 8px;
             }
@@ -209,7 +209,7 @@
         }
 
         /* Button Styles */
-        #fixed-toolbar button {
+        #persistent-toolbar button {
             background: transparent;
             border: none;
             color: white;
@@ -228,15 +228,15 @@
             transition: background-color 0.2s ease;
         }
 
-        #fixed-toolbar button .material-icons {
+        #persistent-toolbar button .material-icons {
             font-size: 20px;
         }
 
-        #fixed-toolbar button:hover {
+        #persistent-toolbar button:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        #fixed-toolbar button.active {
+        #persistent-toolbar button.active {
             background: rgba(255, 255, 255, 0.2);
         }
 
@@ -250,7 +250,7 @@
             width: auto;
         }
 
-        #fixed-toolbar #link-input {
+        #persistent-toolbar #link-input {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 4px;
@@ -261,7 +261,7 @@
             flex: none;
         }
 
-        #fixed-toolbar #link-input:focus {
+        #persistent-toolbar #link-input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.4);
         }
@@ -276,54 +276,54 @@
         <!-- Separate toolbar section -->
         <div class="toolbar-section">
             <div class="toolbar-container">
-                <div id="fixed-toolbar" class="fixed-position">
+                <div id="persistent-toolbar" class="persistent-position">
                     <div class="toolbar-initial">
                         <!-- Text formatting group -->
                         <div class="toolbar-group">
-                            <button id="bold-button" title="Bold">
+                            <button id="persistent-toolbar-bold-button" title="Bold">
                                 <span class="material-icons">format_bold</span>
                             </button>
-                            <button id="italic-button" title="Italic">
+                            <button id="persistent-toolbar-italic-button" title="Italic">
                                 <span class="material-icons">format_italic</span>
                             </button>
-                            <button id="underline-button" title="Underline">
+                            <button id="persistent-toolbar-underline-button" title="Underline">
                                 <span class="material-icons">format_underline</span>
                             </button>
                         </div>
                         
                         <!-- Headings group -->
                         <div class="toolbar-group">
-                            <button id="h1-button" title="Heading 1">
+                            <button id="persistent-toolbar-h1-button" title="Heading 1">
                                 <span class="material-icons">looks_one</span>
                             </button>
-                            <button id="h2-button" title="Heading 2">
+                            <button id="persistent-toolbar-h2-button" title="Heading 2">
                                 <span class="material-icons">looks_two</span>
                             </button>
                         </div>
                         
                         <!-- Special formatting group -->
                         <div class="toolbar-group">
-                            <button id="code-button" title="Code">
+                            <button id="persistent-toolbar-code-button" title="Code">
                                 <span class="material-icons">code</span>
                             </button>
-                            <button id="quote-button" title="Quote">
+                            <button id="persistent-toolbar-quote-button" title="Quote">
                                 <span class="material-icons">format_quote</span>
                             </button>
                         </div>
 
                         <!-- List formatting group -->
                         <div class="toolbar-group">
-                            <button id="bullet-list-button" title="Bullet List">
+                            <button id="persistent-toolbar-bullet-list-button" title="Bullet List">
                                 <span class="material-icons">format_list_bulleted</span>
                             </button>
-                            <button id="number-list-button" title="Numbered List">
+                            <button id="persistent-toolbar-number-list-button" title="Numbered List">
                                 <span class="material-icons">format_list_numbered</span>
                             </button>
                         </div>
 
                         <!-- Link group -->
                         <div class="toolbar-group">
-                            <button id="link-button" title="Add Link">
+                            <button id="persistent-toolbar-link-button" title="Add Link">
                                 <span class="material-icons">link</span>
                             </button>
                         </div>
@@ -349,8 +349,8 @@
         <!-- Separate content section -->
         <div class="content-section">
             <div class="content" contenteditable="true">
-                <h1>Fixed Toolbar Demo</h1>
-                <p>This is a demo of the fixed toolbar mode. The toolbar stays at the top until you select text, then it moves to the selection.</p>
+                <h1>Persistent Toolbar Demo</h1>
+                <p>This is a demo of the persistent toolbar mode. The toolbar stays at the top until you select text, then it moves to the selection.</p>
                 <p>Here's an example of lists:</p>
                 <ul>
                     <li>Bullet points are great for:</li>
@@ -385,9 +385,9 @@
 
             const toolbar = FloatingToolbar.init({
                 selector: '.content',
-                mode: 'fixed',
+                mode: 'persistent',
                 offset: { x: 0, y: 10 },
-                toolbarId: 'fixed-toolbar',
+                toolbarId: 'persistent-toolbar',
                 debug: true, // Set to true to enable debug logging
                 buttons: {
                     // Text formatting options
@@ -419,7 +419,7 @@
                         url: true
                     }
                 },
-                fixedPosition: {
+                persistentPosition: {
                     top: 0,
                     center: true
                 }

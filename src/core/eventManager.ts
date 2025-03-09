@@ -34,7 +34,7 @@ export function setupEventListeners(
         document.querySelectorAll<HTMLElement>('.floating-toolbar').forEach(toolbar => {
             if (toolbar !== elements.toolbar) {
                 // Reset other toolbars to their default state
-                toolbar.classList.add('fixed-position');
+                toolbar.classList.add('persistent-position');
                 toolbar.style.position = 'absolute';
                 toolbar.style.top = '0';
                 toolbar.style.left = '50%';

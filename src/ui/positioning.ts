@@ -49,115 +49,75 @@ export function setupToolbarPositionObserver(
     state: ToolbarState,
     elements: ToolbarElements,
     debug: (message: string, data?: any) => void
-): void {
-    if (!elements.toolbar || !elements.toolbarContainer) return;
+): IntersectionObserver | null {
+    if (!elements.toolbar || !elements.container) return null;
 
-    // Cleanup any existing observer
-    if (state.positionObserver) {
-        state.positionObserver.disconnect();
-    }
+    debug('Setting up position observer', {
+        isPersistent: state.isPersistent,
+        isAtPersistentPosition: state.isAtPersistentPosition,
+        currentView: state.currentView
+    });
 
-    // Create observer for the toolbar container
     const observer = new IntersectionObserver(
         (entries) => {
-            entries.forEach(entry => {
-                if (!elements.toolbar) return;
+            const entry = entries[0];
+            if (!elements.toolbar) return;
 
-                debug('Intersection Observer Update', {
-                    isIntersecting: entry.isIntersecting,
-                    currentView: state.currentView,
-                    isFixed: state.isFixed,
-                    isAtFixedPosition: state.isAtFixedPosition,
-                    hasSelection: state.selectionRect !== null,
-                    toolbarClasses: Array.from(elements.toolbar.classList),
-                    toolbarPosition: elements.toolbar.getBoundingClientRect(),
-                    toolbarStyle: {
-                        position: elements.toolbar.style.position,
-                        top: elements.toolbar.style.top,
-                        left: elements.toolbar.style.left,
-                        transform: elements.toolbar.style.transform
-                    },
-                    preservedPosition: {
-                        top: elements.toolbar.dataset.preservedTop,
-                        left: elements.toolbar.dataset.preservedLeft
-                    }
+            // If we're in link editing mode and not in persistent position, preserve current position
+            if (state.currentView === 'linkInput' && !state.isAtPersistentPosition) {
+                debug('Preserving position during link editing', {
+                    currentView: state.currentView
                 });
+                return;
+            }
 
-                // If we're in link editing mode and not fixed position, preserve current position
-                if (state.currentView === 'linkInput' && !state.isAtFixedPosition) {
-                    // Check for preserved position
-                    const preservedTop = elements.toolbar.dataset.preservedTop;
-                    const preservedLeft = elements.toolbar.dataset.preservedLeft;
-                    if (preservedTop && preservedLeft) {
-                        elements.toolbar.style.top = preservedTop;
-                        elements.toolbar.style.left = preservedLeft;
-                        debug('Restored preserved position during link input', {
-                            top: preservedTop,
-                            left: preservedLeft
-                        });
-                    }
-                    return;
+            // Update selection rect if needed
+            if (state.selectionRect && !state.isAtPersistentPosition) {
+                updateSelectionRect(state, debug);
+            }
+
+            // Handle persistent position transitions
+            if (!entry.isIntersecting && state.isPersistent) {
+                // Container is out of view, switch to persistent position mode
+                elements.toolbar.classList.add('persistent-position');
+                elements.toolbar.style.position = 'absolute';
+                elements.toolbar.style.top = '0';
+                elements.toolbar.style.left = '50%';
+                elements.toolbar.style.transform = 'translateX(-50%)';
+                state.isAtPersistentPosition = true;
+
+                // Clear preserved position when switching to persistent
+                delete elements.toolbar.dataset.preservedTop;
+                delete elements.toolbar.dataset.preservedLeft;
+
+                debug('Switched to persistent position', {
+                    boundingRect: elements.toolbar.getBoundingClientRect()
+                });
+            } else if (entry.isIntersecting && !state.isPersistent) {
+                // Only switch to normal positioning if we're not in persistent mode
+                elements.toolbar.classList.remove('persistent-position');
+                elements.toolbar.style.position = 'absolute';
+                state.isAtPersistentPosition = false;
+                
+                // If we have a selection, update position relative to it
+                if (state.selectionRect) {
+                    elements.toolbar.classList.add('following-selection');
+                    updateToolbarPosition(config, state, elements, debug);
                 }
 
-                // If we have an active selection, maintain position relative to selection
-                if (state.selectionRect && !state.isAtFixedPosition) {
-                    return;
-                }
-
-                // Handle fixed position transitions
-                if (!entry.isIntersecting && state.isFixed) {
-                    // Container is out of view, switch to fixed position mode
-                    elements.toolbar.classList.add('fixed-position');
-                    elements.toolbar.classList.remove('following-selection');
-                    elements.toolbar.style.position = 'absolute';
-                    elements.toolbar.style.top = '0';
-                    elements.toolbar.style.left = '50%';
-                    elements.toolbar.style.transform = 'translateX(-50%)';
-                    state.isAtFixedPosition = true;
-
-                    // Clear preserved position when switching to fixed
-                    delete elements.toolbar.dataset.preservedTop;
-                    delete elements.toolbar.dataset.preservedLeft;
-
-                    debug('Switched to fixed position', {
-                        boundingRect: elements.toolbar.getBoundingClientRect()
-                    });
-                } else if (entry.isIntersecting && !state.isFixed) {
-                    // Only switch to normal positioning if we're not in fixed mode
-                    elements.toolbar.classList.remove('fixed-position');
-                    elements.toolbar.style.position = 'absolute';
-                    state.isAtFixedPosition = false;
-                    
-                    // If we have a selection, update position relative to it
-                    if (state.selectionRect) {
-                        elements.toolbar.classList.add('following-selection');
-                        updateToolbarPosition(config, state, elements, debug);
-                    }
-
-                    debug('Switched to normal position', {
-                        boundingRect: elements.toolbar.getBoundingClientRect()
-                    });
-                }
-            });
+                debug('Switched to normal position', {
+                    boundingRect: elements.toolbar.getBoundingClientRect()
+                });
+            }
         },
-        {
-            // Start observing slightly before the element goes out of view
-            rootMargin: '-1px 0px 0px 0px',
-            threshold: [0, 1]
-        }
+        { threshold: [0, 1] }
     );
 
-    // Start observing the toolbar container
-    observer.observe(elements.toolbarContainer);
-    state.positionObserver = observer;
-
-    debug('Position observer setup complete', {
-        container: elements.toolbarContainer,
-        toolbar: elements.toolbar
-    });
+    observer.observe(elements.container);
+    return observer;
 }
 
-export function updatePosition(
+export function updateToolbarVisibility(
     config: ToolbarConfig,
     state: ToolbarState,
     elements: ToolbarElements,
@@ -165,25 +125,18 @@ export function updatePosition(
 ): void {
     if (!elements.toolbar) return;
 
-    if (!state.isFixed) {
-        handleFloatingMode(config, state, elements, debug);
-    } else {
-        handleFixedMode(config, state, elements, debug);
+    const selection = document.getSelection();
+    const hasSelection = selection ? selection.toString().trim().length > 0 : false;
+
+    if (!state.isPersistent) {
+        elements.toolbar.style.display = hasSelection ? 'flex' : 'none';
+        return;
     }
+
+    handlePersistentMode(config, state, elements, debug);
 }
 
-function handleFloatingMode(
-    config: ToolbarConfig,
-    state: ToolbarState,
-    elements: ToolbarElements,
-    debug: (message: string, data?: any) => void
-): void {
-    if (!state.selectionRect || !elements.toolbar) return;
-
-    updateToolbarPosition(config, state, elements, debug);
-}
-
-function handleFixedMode(
+function handlePersistentMode(
     config: ToolbarConfig,
     state: ToolbarState,
     elements: ToolbarElements,
@@ -198,7 +151,7 @@ function handleFixedMode(
     if (state.currentView === 'linkInput') {
         if (state.selectionRect) {
             // For both new and existing links, position at selection
-            elements.toolbar.classList.remove('fixed-position');
+            elements.toolbar.classList.remove('persistent-position');
             elements.toolbar.classList.add('following-selection');
             updateToolbarPosition(config, state, elements, debug);
             return;
@@ -206,27 +159,27 @@ function handleFixedMode(
     }
 
     if (!hasSelection) {
-        debug('Fixed Mode: No selection - resetting to default position', {
-            isFixed: state.isFixed,
-            isAtFixedPosition: state.isAtFixedPosition
+        debug('Persistent Mode: No selection - resetting to default position', {
+            isPersistent: state.isPersistent,
+            isAtPersistentPosition: state.isAtPersistentPosition
         });
 
-        resetToFixedPosition(state, elements);
+        resetToPersistentPosition(state, elements);
     } else if (state.selectionRect) {
         updateToolbarPosition(config, state, elements, debug);
     }
 }
 
-function resetToFixedPosition(
+function resetToPersistentPosition(
     state: ToolbarState,
     elements: ToolbarElements
 ): void {
     if (!elements.toolbar) return;
 
-    elements.toolbar.classList.add('fixed-position');
+    elements.toolbar.classList.add('persistent-position');
     elements.toolbar.classList.remove('following-selection');
     elements.toolbar.classList.remove('below');
-    state.isAtFixedPosition = true;
+    state.isAtPersistentPosition = true;
 
     elements.toolbar.style.position = 'absolute';
     elements.toolbar.style.top = '0';
@@ -235,6 +188,32 @@ function resetToFixedPosition(
 
     // Clear the stored width
     elements.toolbar.style.removeProperty('--toolbar-width');
+}
+
+export function updatePosition(
+    config: ToolbarConfig,
+    state: ToolbarState,
+    elements: ToolbarElements,
+    debug: (message: string, data?: any) => void
+): void {
+    if (!elements.toolbar) return;
+
+    if (!state.isPersistent) {
+        handleFloatingMode(config, state, elements, debug);
+    } else {
+        handlePersistentMode(config, state, elements, debug);
+    }
+}
+
+function handleFloatingMode(
+    config: ToolbarConfig,
+    state: ToolbarState,
+    elements: ToolbarElements,
+    debug: (message: string, data?: any) => void
+): void {
+    if (!state.selectionRect || !elements.toolbar) return;
+
+    updateToolbarPosition(config, state, elements, debug);
 }
 
 function updateToolbarPosition(
@@ -278,10 +257,10 @@ function updateToolbarPosition(
     });
 
     // Position the toolbar
-    elements.toolbar.classList.remove('fixed-position');
+    elements.toolbar.classList.remove('persistent-position');
     elements.toolbar.classList.add('following-selection');
     elements.toolbar.classList.toggle('below', shouldPositionBelow);
-    state.isAtFixedPosition = false;
+    state.isAtPersistentPosition = false;
 
     elements.toolbar.style.position = 'absolute';
     elements.toolbar.style.left = `${left}px`;
@@ -299,13 +278,13 @@ export function resetToolbar(
     elements: ToolbarElements,
     clearFormatButtonStates: () => void
 ): void {
-    // Only reset if we're in fixed mode
-    if (state.isFixed && elements.toolbar) {
+    // Only reset if we're in persistent mode
+    if (state.isPersistent && elements.toolbar) {
         state.isVisible = true;
         state.currentView = 'initial';
-        state.isAtFixedPosition = true;
+        state.isAtPersistentPosition = true;
         
-        elements.toolbar.classList.add('fixed-position');
+        elements.toolbar.classList.add('persistent-position');
         elements.toolbar.classList.remove('following-selection');
         elements.toolbar.classList.remove('below');
         
@@ -330,13 +309,13 @@ export function updateView(
 ): void {
     if (!this.elements.toolbar) return;
 
-    // In fixed mode, toolbar is always displayed and has fixed-position class
-    if (this.state.isFixed) {
+    // In persistent mode, toolbar is always displayed and has persistent-position class
+    if (this.state.isPersistent) {
         this.elements.toolbar.classList.add('visible');
-        this.elements.toolbar.classList.add('fixed-position');
+        this.elements.toolbar.classList.add('persistent-position');
     } else {
         this.elements.toolbar.classList.toggle('visible', this.state.isVisible);
-        this.elements.toolbar.classList.remove('fixed-position');
+        this.elements.toolbar.classList.remove('persistent-position');
     }
 
     // Handle current view
@@ -383,7 +362,21 @@ export function updateView(
     }
 
     // Update position if visible
-    if (this.state.isVisible || this.state.isFixed) {
+    if (this.state.isVisible || this.state.isPersistent) {
         this.updatePosition();
     }
+}
+
+function updateSelectionRect(
+    state: ToolbarState,
+    debug: (message: string, data?: any) => void
+): void {
+    const selection = document.getSelection();
+    if (!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    state.selectionRect = rect;
+
+    debug('Updated selection rect', { rect });
 } 

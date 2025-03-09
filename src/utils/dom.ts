@@ -78,7 +78,7 @@ export function addToolbarStyles(toolbarId: string): void {
                 top: -6px;
             }
 
-            #${toolbarId}:not(.fixed-position) {
+            #${toolbarId}:not(.persistent-position) {
                 max-width: min(100vw - 40px, 800px);
             }
 
@@ -96,7 +96,7 @@ export function addToolbarStyles(toolbarId: string): void {
                 flex-wrap: nowrap;
             }
 
-            #${toolbarId}:not(.fixed-position) .toolbar-initial {
+            #${toolbarId}:not(.persistent-position) .toolbar-initial {
                 flex-wrap: nowrap;
             }
 

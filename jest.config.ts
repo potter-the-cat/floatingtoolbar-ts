@@ -8,6 +8,7 @@ const config: Config.InitialOptions = {
     },
     testMatch: [
         '<rootDir>/src/tests/**/*.test.ts',
+        '<rootDir>/tests/**/*.test.ts'
     ],
     transform: {
         '^.+\\.tsx?$': ['ts-jest', {

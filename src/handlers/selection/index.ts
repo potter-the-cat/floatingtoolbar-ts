@@ -22,7 +22,7 @@ export function handleSelection(
     this.debug('Handling selection for toolbar', {
         toolbarId: this.config.toolbarId,
         contentSelector: this.config.selector || this.config.content,
-        isFixed: this.state.isFixed,
+        isPersistent: this.state.isPersistent,
         eventType: event.type,
         allToolbars: Array.from(document.querySelectorAll('.floating-toolbar')).map(t => t.id)
     });
@@ -44,7 +44,7 @@ export function handleSelection(
             
             if (toolbar !== this.elements.toolbar) {
                 // Reset other toolbars to their default state
-                toolbar.classList.add('fixed-position');
+                toolbar.classList.add('persistent-position');
                 toolbar.style.position = 'absolute';
                 toolbar.style.top = '0';
                 toolbar.style.left = '50%';
@@ -154,8 +154,8 @@ export function handleSelection(
             if (this.elements.toolbar) {
                 this.elements.toolbar.classList.add('visible');
                 this.elements.toolbar.classList.add('following-selection');
-                this.elements.toolbar.classList.remove('fixed-position');
-                this.state.isAtFixedPosition = false;
+                this.elements.toolbar.classList.remove('persistent-position');
+                this.state.isAtPersistentPosition = false;
             }
         } else {
             this.state.existingLink = null;

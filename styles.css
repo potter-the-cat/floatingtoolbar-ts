@@ -133,7 +133,7 @@ p {
     filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
 }
 
-.floating-toolbar.fixed-position {
+.floating-toolbar.persistent-position {
     display: flex; /* Show in fixed mode */
     position: absolute;
     left: 50%;
@@ -306,9 +306,4 @@ blockquote {
 #visit-link {
     color: #27ae60;
     margin-right: 5px;
-}
-
-#visit-link:hover {
-    background-color: #efffef;
-    color: #219a52;
 } 

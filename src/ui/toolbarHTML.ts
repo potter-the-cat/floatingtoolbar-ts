@@ -3,7 +3,7 @@ import { ToolbarConfig, ToolbarState } from '../core/types';
 export function createToolbarHTML(config: ToolbarConfig, state: ToolbarState): string {
     const themeClass = config.theme ? `theme-${config.theme}` : 'theme-dark';
     const html = `
-        <div id="${config.toolbarId}" class="floating-toolbar ${state.isFixed ? 'fixed-position' : ''} ${themeClass}">
+        <div id="${config.toolbarId}" class="floating-toolbar ${state.isPersistent ? 'persistent-position' : ''} ${themeClass}">
             <div class="toolbar-initial">
                 <!-- Text formatting group -->
                 <div class="toolbar-group">

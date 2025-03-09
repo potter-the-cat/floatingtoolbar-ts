@@ -1,6 +1,12 @@
-import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../src/core/types';
-import { handleSelection } from '../../src/handlers/selection';
-import { handleLinkButtonClick } from '../../src/handlers/link';
+import { ToolbarConfig, ToolbarState, ToolbarElements } from '../../../../src/core/types';
+import { handleSelection } from '../../../../src/handlers/selection';
+import { handleLinkButtonClick, handleSaveLinkClick } from '../../../../src/handlers/link';
+
+declare global {
+    interface Window {
+        ensureValidUrl: (url: string) => string;
+    }
+}
 
 describe('Link Toolbar Positioning', () => {
     let mockState: ToolbarState;
@@ -14,11 +20,15 @@ describe('Link Toolbar Positioning', () => {
         const linkInput = document.createElement('input');
         const toolbarInitial = document.createElement('div');
         const toolbarLinkInput = document.createElement('div');
+        const container = document.createElement('div');
+        const contentArea = document.createElement('div');
+        contentArea.id = 'content';
+        document.body.appendChild(contentArea);
         
         // Create complete mock elements with all required properties
         mockElements = {
             toolbar,
-            linkInput,
+            container,
             toolbarInitial,
             toolbarLinkInput,
             linkButton: document.createElement('button'),
@@ -39,31 +49,70 @@ describe('Link Toolbar Positioning', () => {
             quoteButton: document.createElement('button'),
             hrButton: document.createElement('button'),
             bulletListButton: document.createElement('button'),
-            numberListButton: document.createElement('button')
+            numberListButton: document.createElement('button'),
+            linkInput,
+            buttons: {
+                bold: { element: document.createElement('button'), enabled: true },
+                italic: { element: document.createElement('button'), enabled: true },
+                underline: { element: document.createElement('button'), enabled: true },
+                strikethrough: { element: document.createElement('button'), enabled: true },
+                subscript: { element: document.createElement('button'), enabled: true },
+                superscript: { element: document.createElement('button'), enabled: true },
+                h1: { element: document.createElement('button'), enabled: true },
+                h2: { element: document.createElement('button'), enabled: true },
+                dropCap: { element: document.createElement('button'), enabled: true },
+                code: { element: document.createElement('button'), enabled: true },
+                quote: { element: document.createElement('button'), enabled: true },
+                hr: { element: document.createElement('button'), enabled: true },
+                bulletList: { element: document.createElement('button'), enabled: true },
+                numberList: { element: document.createElement('button'), enabled: true }
+            }
         };
 
         mockState = {
-            isFixed: true,
             isVisible: true,
+            isPersistent: true,
+            isAtPersistentPosition: true,
             currentView: 'initial',
-            currentSelection: null,
-            selectedText: '',
-            selectionRange: null,
-            position: { x: 0, y: 0 },
+            selectedText: null,
             selectionRect: null,
+            selectionRange: null,
+            currentSelection: null,
             existingLink: null,
-            resizeTimeout: null,
-            activeFormats: new Set(),
-            dropCapElements: new Set(),
+            linkUrl: '',
+            isValidUrl: false,
+            toolbarRect: null,
+            wrapperRect: null,
+            spaceAbove: 0,
+            spaceBelow: 0,
             isProcessingLinkClick: false,
-            isAtFixedPosition: true
+            positionObserver: null,
+            position: { x: 0, y: 0 },
+            resizeTimeout: undefined,
+            activeFormats: new Set(),
+            dropCapElements: new Set()
         };
 
         mockConfig = {
-            mode: 'fixed',
-            offset: { x: 0, y: 10 },
+            container: '#editor',
+            content: '#content',
+            mode: 'persistent',
+            theme: 'light',
             debug: false,
-        } as ToolbarConfig;
+            useExistingToolbar: false,
+            buttons: {
+                text: {},
+                script: {},
+                heading: {},
+                special: {},
+                list: {},
+                link: {}
+            },
+            offset: { x: 0, y: 10 },
+            persistentPosition: { top: 0 },
+            toolbarId: 'test-toolbar',
+            resizeDebounceMs: 100
+        };
 
         mockContext = {
             config: mockConfig,
@@ -78,6 +127,7 @@ describe('Link Toolbar Positioning', () => {
 
         // Setup document.body for tests
         document.body.innerHTML = '';
+        document.body.appendChild(contentArea);
         document.body.appendChild(toolbar);
     });
 
@@ -114,7 +164,7 @@ describe('Link Toolbar Positioning', () => {
                 bottom: 170,
                 right: 350,
             }),
-            commonAncestorContainer: document.body,
+            commonAncestorContainer: document.querySelector('#content'),
             cloneRange: () => mockRange,
         };
 
@@ -123,6 +173,10 @@ describe('Link Toolbar Positioning', () => {
             getRangeAt: () => mockRange,
             rangeCount: 1,
         };
+
+        // Mock window.getSelection
+        const originalGetSelection = window.getSelection;
+        window.getSelection = () => mockSelection as unknown as Selection;
 
         // Mock existing link
         const existingLink = document.createElement('a');
@@ -144,17 +198,50 @@ describe('Link Toolbar Positioning', () => {
         // Verify toolbar state and position
         expect(mockState.currentView).toBe('linkInput');
         expect(mockState.existingLink).toBe(existingLink);
-        expect(mockState.isAtFixedPosition).toBe(false);
+        expect(mockState.isAtPersistentPosition).toBe(false);
         expect(mockElements.toolbar!.classList.contains('following-selection')).toBe(true);
-        expect(mockElements.toolbar!.classList.contains('fixed-position')).toBe(false);
+        expect(mockElements.toolbar!.classList.contains('persistent-position')).toBe(false);
+
+        // Restore original getSelection
+        window.getSelection = originalGetSelection;
     });
 
     test('resets to fixed position after saving link', () => {
         // Setup mock selection and link state
         mockState.currentView = 'linkInput';
-        mockState.isAtFixedPosition = false;
+        mockState.isAtPersistentPosition = false;
         mockElements.toolbar!.classList.add('following-selection');
-        mockElements.toolbar!.classList.remove('fixed-position');
+        mockElements.toolbar!.classList.remove('persistent-position');
+        mockElements.linkInput!.value = 'https://example.com';
+        mockState.selectedText = 'Example Link';
+
+        // Create a proper DOM environment
+        const contentArea = document.createElement('div');
+        contentArea.id = 'content';
+        document.body.appendChild(contentArea);
+
+        const textNode = document.createTextNode('Example Link');
+        contentArea.appendChild(textNode);
+
+        const range = document.createRange();
+        range.selectNode(textNode);
+        mockState.selectionRange = range;
+
+        // Mock empty selection
+        const mockSelection = {
+            toString: () => '',
+            getRangeAt: () => null,
+            rangeCount: 0,
+            removeAllRanges: () => {},
+        };
+
+        // Mock window.getSelection
+        const originalGetSelection = window.getSelection;
+        window.getSelection = () => mockSelection as unknown as Selection;
+
+        // Mock window.ensureValidUrl
+        const originalEnsureValidUrl = window.ensureValidUrl;
+        window.ensureValidUrl = (url: string) => url;
 
         // Create a proper MouseEvent
         const mouseEvent = new MouseEvent('mouseup', {
@@ -165,13 +252,20 @@ describe('Link Toolbar Positioning', () => {
             clientY: 0
         });
         
-        // Simulate saving link (clearing selection)
-        handleSelection.call(mockContext, mouseEvent);
+        // Simulate saving link
+        handleSaveLinkClick.call(mockContext, mouseEvent);
 
         // Verify toolbar resets to fixed position
-        expect(mockState.isAtFixedPosition).toBe(true);
-        expect(mockElements.toolbar!.classList.contains('fixed-position')).toBe(true);
+        expect(mockState.isAtPersistentPosition).toBe(true);
+        expect(mockElements.toolbar!.classList.contains('persistent-position')).toBe(true);
         expect(mockElements.toolbar!.classList.contains('following-selection')).toBe(false);
+
+        // Restore original functions
+        window.getSelection = originalGetSelection;
+        window.ensureValidUrl = originalEnsureValidUrl;
+
+        // Clean up
+        document.body.removeChild(contentArea);
     });
 
     test('preserves position during link input interaction', () => {
@@ -179,7 +273,7 @@ describe('Link Toolbar Positioning', () => {
         mockElements.toolbar!.style.top = '100px';
         mockElements.toolbar!.style.left = '200px';
         mockState.currentView = 'linkInput';
-        mockState.isAtFixedPosition = false;
+        mockState.isAtPersistentPosition = false;
 
         // Create a proper MouseEvent with the link input as target
         const mouseEvent = new MouseEvent('mouseup', {

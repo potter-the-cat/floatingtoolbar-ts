@@ -17,7 +17,16 @@ export function destroy(
 
     // Clear all element references
     Object.keys(elements).forEach(key => {
-        elements[key as keyof ToolbarElements] = null;
+        if (key === 'buttons') {
+            // Handle buttons separately
+            const buttons = elements.buttons;
+            Object.keys(buttons).forEach(buttonKey => {
+                buttons[buttonKey as keyof typeof buttons].element = null;
+                buttons[buttonKey as keyof typeof buttons].enabled = undefined;
+            });
+        } else {
+            (elements[key as keyof ToolbarElements] as any) = null;
+        }
     });
 
     // Reset state
@@ -27,5 +36,5 @@ export function destroy(
     state.selectionRect = null;
     state.existingLink = null;
     state.isProcessingLinkClick = false;
-    state.isAtFixedPosition = false;
+    state.isAtPersistentPosition = false;
 } 

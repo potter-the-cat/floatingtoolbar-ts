@@ -56,7 +56,7 @@ export function initialize(
     // Set initial mode class
     if (this.elements.toolbar) {
         this.elements.toolbar.classList.add('floating-toolbar');
-        this.elements.toolbar.classList.toggle('fixed-position', this.state.isFixed);
+        this.elements.toolbar.classList.toggle('persistent-position', this.state.isPersistent);
         this.elements.toolbar.classList.add(`theme-${this.config.theme}`);
         
         // Force a reflow to ensure styles are applied
