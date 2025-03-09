@@ -1,6 +1,7 @@
 import { ToolbarConfig, ToolbarState, ToolbarElements } from './types';
 import { cacheElements } from '../utils/elements';
 import { setupEventListeners } from './eventManager';
+import { setupToolbarPositionObserver } from '../ui/positioning';
 
 export interface InitializeContext {
     config: ToolbarConfig;
@@ -61,6 +62,14 @@ export function initialize(
         // Force a reflow to ensure styles are applied
         void this.elements.toolbar.offsetHeight;
     }
+    
+    // Set up position observer
+    setupToolbarPositionObserver(
+        this.config,
+        this.state,
+        this.elements,
+        this.debug.bind(this)
+    );
     
     // Initial state setup
     this.debug("Selection state:", {

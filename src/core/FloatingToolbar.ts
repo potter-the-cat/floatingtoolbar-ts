@@ -128,6 +128,8 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
         // Initialize state
         this.state = {
             isVisible: this.config.mode === 'fixed',
+            isFixed: this.config.mode === 'fixed',
+            isAtFixedPosition: this.config.mode === 'fixed',
             currentView: 'initial',
             currentSelection: null,
             selectedText: '',
@@ -135,17 +137,17 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
             position: { x: 0, y: 0 },
             selectionRect: null,
             existingLink: null,
-            resizeTimeout: null,
+            resizeTimeout: undefined,
             activeFormats: new Set<string>(),
             dropCapElements: new Set<HTMLElement>(),
-            isProcessingLinkClick: false,
-            isFixed: this.config.mode === 'fixed',
-            isAtFixedPosition: true
+            positionObserver: null,
+            isProcessingLinkClick: false
         };
 
         // Initialize elements cache
         this.elements = {
             toolbar: null,
+            toolbarContainer: null,
             toolbarInitial: null,
             toolbarLinkInput: null,
             linkButton: null,

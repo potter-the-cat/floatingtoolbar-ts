@@ -9,6 +9,7 @@ export function cacheElements(
 
     const elements: ToolbarElements = {
         toolbar: document.getElementById(config.toolbarId),
+        toolbarContainer: document.querySelector('.toolbar-container'),
         toolbarInitial: null,
         toolbarLinkInput: null,
         linkButton: null,

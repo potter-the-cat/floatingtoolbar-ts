@@ -307,13 +307,28 @@ test.describe('Floating Toolbar Visual Tests', () => {
         const toolbar = await page.locator('#default-toolbar');
         await expect(toolbar).toBeVisible({ timeout: 10000 });
 
+        // Get initial position and container width
+        const initialPosition = await toolbar.boundingBox();
+        const contentWrapper = await toolbar.evaluate(el => {
+            const wrapper = el.closest('.content-wrapper');
+            return wrapper ? wrapper.getAttribute('id') || `.content-wrapper:has(#${el.id})` : null;
+        });
+        const wrapperBox = contentWrapper ? await page.locator(contentWrapper).boundingBox() : null;
+        
+        if (!initialPosition || !wrapperBox) {
+            throw new Error('Could not get initial positions');
+        }
+
+        // Calculate initial center offset
+        const initialCenterOffset = initialPosition.x + (initialPosition.width / 2) - (wrapperBox.x + (wrapperBox.width / 2));
+
         // Click the link button to show link input
         const linkButton = await page.locator('#default-toolbar-link-button');
         await expect(linkButton).toBeVisible();
         await linkButton.click();
         
-        // Wait for link input to appear
-        await page.waitForTimeout(100);
+        // Wait for link input to appear and animation to complete
+        await page.waitForTimeout(300);
         
         // Get the input field and visit button
         const inputField = await toolbar.locator('.toolbar-link-input input');
@@ -321,19 +336,40 @@ test.describe('Floating Toolbar Visual Tests', () => {
         
         // Test invalid URL
         await inputField.fill('g');
-        await page.waitForTimeout(100); // Wait for validation
+        await page.waitForTimeout(300); // Wait longer for validation
         await expect(visitButton).toHaveCSS('display', 'none');
+
+        // Verify toolbar remains reasonably centered
+        const positionAfterInvalid = await toolbar.boundingBox();
+        if (!positionAfterInvalid) throw new Error('Could not get toolbar position after invalid URL');
+        
+        const centerOffsetAfterInvalid = positionAfterInvalid.x + (positionAfterInvalid.width / 2) - (wrapperBox.x + (wrapperBox.width / 2));
+        const maxOffset = Math.min(50, wrapperBox.width * 0.1); // Allow up to 50px or 10% of wrapper width
+        expect(Math.abs(centerOffsetAfterInvalid)).toBeLessThan(maxOffset);
+        expect(Math.abs(positionAfterInvalid.y - initialPosition.y)).toBeLessThan(2); // Vertical position should remain stable
+
         await expect(toolbar).toHaveScreenshot('link-input-invalid-url.png');
         
         // Test partial URL
         await inputField.fill('example');
-        await page.waitForTimeout(100); // Wait for validation
+        await page.waitForTimeout(300); // Wait longer for validation
         await expect(visitButton).toHaveCSS('display', 'none');
         
         // Test valid URL
         await inputField.fill('https://example.com');
-        await page.waitForTimeout(100); // Wait for validation
+        await page.waitForTimeout(300); // Wait longer for validation
         await expect(visitButton).toHaveCSS('display', 'flex');
+
+        // Verify toolbar remains reasonably centered
+        const positionAfterValid = await toolbar.boundingBox();
+        if (!positionAfterValid) throw new Error('Could not get toolbar position after valid URL');
+        
+        const centerOffsetAfterValid = positionAfterValid.x + (positionAfterValid.width / 2) - (wrapperBox.x + (wrapperBox.width / 2));
+        expect(Math.abs(centerOffsetAfterValid)).toBeLessThan(maxOffset);
+        expect(Math.abs(positionAfterValid.y - initialPosition.y)).toBeLessThan(2); // Vertical position should remain stable
+
+        // Wait for any animations to complete
+        await page.waitForTimeout(100);
         await expect(toolbar).toHaveScreenshot('link-input-valid-url.png');
     });
 

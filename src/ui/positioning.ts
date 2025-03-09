@@ -44,6 +44,119 @@ interface SpaceCalculations {
     containerBottomOffset: number;
 }
 
+export function setupToolbarPositionObserver(
+    config: ToolbarConfig,
+    state: ToolbarState,
+    elements: ToolbarElements,
+    debug: (message: string, data?: any) => void
+): void {
+    if (!elements.toolbar || !elements.toolbarContainer) return;
+
+    // Cleanup any existing observer
+    if (state.positionObserver) {
+        state.positionObserver.disconnect();
+    }
+
+    // Create observer for the toolbar container
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach(entry => {
+                if (!elements.toolbar) return;
+
+                debug('Intersection Observer Update', {
+                    isIntersecting: entry.isIntersecting,
+                    currentView: state.currentView,
+                    isFixed: state.isFixed,
+                    isAtFixedPosition: state.isAtFixedPosition,
+                    hasSelection: state.selectionRect !== null,
+                    toolbarClasses: Array.from(elements.toolbar.classList),
+                    toolbarPosition: elements.toolbar.getBoundingClientRect(),
+                    toolbarStyle: {
+                        position: elements.toolbar.style.position,
+                        top: elements.toolbar.style.top,
+                        left: elements.toolbar.style.left,
+                        transform: elements.toolbar.style.transform
+                    },
+                    preservedPosition: {
+                        top: elements.toolbar.dataset.preservedTop,
+                        left: elements.toolbar.dataset.preservedLeft
+                    }
+                });
+
+                // If we're in link editing mode and not fixed position, preserve current position
+                if (state.currentView === 'linkInput' && !state.isAtFixedPosition) {
+                    // Check for preserved position
+                    const preservedTop = elements.toolbar.dataset.preservedTop;
+                    const preservedLeft = elements.toolbar.dataset.preservedLeft;
+                    if (preservedTop && preservedLeft) {
+                        elements.toolbar.style.top = preservedTop;
+                        elements.toolbar.style.left = preservedLeft;
+                        debug('Restored preserved position during link input', {
+                            top: preservedTop,
+                            left: preservedLeft
+                        });
+                    }
+                    return;
+                }
+
+                // If we have an active selection, maintain position relative to selection
+                if (state.selectionRect && !state.isAtFixedPosition) {
+                    return;
+                }
+
+                // Handle fixed position transitions
+                if (!entry.isIntersecting && state.isFixed) {
+                    // Container is out of view, switch to fixed position mode
+                    elements.toolbar.classList.add('fixed-position');
+                    elements.toolbar.classList.remove('following-selection');
+                    elements.toolbar.style.position = 'absolute';
+                    elements.toolbar.style.top = '0';
+                    elements.toolbar.style.left = '50%';
+                    elements.toolbar.style.transform = 'translateX(-50%)';
+                    state.isAtFixedPosition = true;
+
+                    // Clear preserved position when switching to fixed
+                    delete elements.toolbar.dataset.preservedTop;
+                    delete elements.toolbar.dataset.preservedLeft;
+
+                    debug('Switched to fixed position', {
+                        boundingRect: elements.toolbar.getBoundingClientRect()
+                    });
+                } else if (entry.isIntersecting && !state.isFixed) {
+                    // Only switch to normal positioning if we're not in fixed mode
+                    elements.toolbar.classList.remove('fixed-position');
+                    elements.toolbar.style.position = 'absolute';
+                    state.isAtFixedPosition = false;
+                    
+                    // If we have a selection, update position relative to it
+                    if (state.selectionRect) {
+                        elements.toolbar.classList.add('following-selection');
+                        updateToolbarPosition(config, state, elements, debug);
+                    }
+
+                    debug('Switched to normal position', {
+                        boundingRect: elements.toolbar.getBoundingClientRect()
+                    });
+                }
+            });
+        },
+        {
+            // Start observing slightly before the element goes out of view
+            rootMargin: '-1px 0px 0px 0px',
+            threshold: [0, 1]
+        }
+    );
+
+    // Start observing the toolbar container
+    observer.observe(elements.toolbarContainer);
+    state.positionObserver = observer;
+
+    debug('Position observer setup complete', {
+        container: elements.toolbarContainer,
+        toolbar: elements.toolbar
+    });
+}
+
 export function updatePosition(
     config: ToolbarConfig,
     state: ToolbarState,
@@ -53,7 +166,7 @@ export function updatePosition(
     if (!elements.toolbar) return;
 
     if (!state.isFixed) {
-        handleFloatingMode(config, state, elements);
+        handleFloatingMode(config, state, elements, debug);
     } else {
         handleFixedMode(config, state, elements, debug);
     }
@@ -62,73 +175,12 @@ export function updatePosition(
 function handleFloatingMode(
     config: ToolbarConfig,
     state: ToolbarState,
-    elements: ToolbarElements
+    elements: ToolbarElements,
+    debug: (message: string, data?: any) => void
 ): void {
     if (!state.selectionRect || !elements.toolbar) return;
 
-    const rect = state.selectionRect;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // Get the content wrapper for relative positioning
-    const contentWrapper = elements.toolbar.closest('.content-wrapper');
-    if (!contentWrapper) {
-        console.error('FloatingToolbar: Content wrapper not found');
-        return;
-    }
-    const wrapperRect = contentWrapper.getBoundingClientRect();
-
-    // Get toolbar dimensions
-    const toolbarRect = elements.toolbar.getBoundingClientRect();
-    const toolbarWidth = toolbarRect.width;
-    const toolbarHeight = toolbarRect.height;
-
-    // Calculate positions relative to the content wrapper
-    let relativeTop = rect.top - wrapperRect.top;
-    let relativeLeft = rect.left - wrapperRect.left + (rect.width / 2);
-
-    // Calculate if we have enough space above the selection
-    const spaceAbove = rect.top;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const shouldPositionBelow = spaceAbove < toolbarHeight + config.offset.y;
-
-    // Ensure toolbar stays within horizontal bounds
-    const minLeft = toolbarWidth / 2;
-    const maxLeft = wrapperRect.width - (toolbarWidth / 2);
-    relativeLeft = Math.max(minLeft, Math.min(relativeLeft, maxLeft));
-
-    // Set position
-    elements.toolbar.style.left = `${relativeLeft}px`;
-
-    if (shouldPositionBelow) {
-        // Position below selection
-        let bottomPosition = relativeTop + rect.height + config.offset.y;
-
-        // Check if toolbar would go below viewport
-        if (rect.bottom + toolbarHeight + config.offset.y > viewportHeight) {
-            // Position above selection instead
-            bottomPosition = relativeTop - toolbarHeight - config.offset.y;
-        }
-
-        elements.toolbar.style.top = `${bottomPosition}px`;
-        elements.toolbar.style.transform = 'translate(-50%, 0)';
-    } else {
-        // Position above selection
-        let topPosition = relativeTop - config.offset.y;
-
-        // Check if toolbar would go above viewport
-        if (rect.top - toolbarHeight - config.offset.y < 0) {
-            // Position below selection instead
-            topPosition = relativeTop + rect.height + config.offset.y;
-        }
-
-        elements.toolbar.style.top = `${topPosition}px`;
-        elements.toolbar.style.transform = 'translate(-50%, -100%)';
-    }
-
-    // Update classes
-    elements.toolbar.classList.toggle('below', shouldPositionBelow);
-    elements.toolbar.classList.add('following-selection');
+    updateToolbarPosition(config, state, elements, debug);
 }
 
 function handleFixedMode(
@@ -141,35 +193,14 @@ function handleFixedMode(
 
     const selection = document.getSelection();
     const hasSelection = selection ? selection.toString().trim().length > 0 : false;
-    const contentArea = document.querySelector<HTMLElement>(config.selector || '');
-    const toolbarContainer = elements.toolbar.closest('.toolbar-container');
-    const contentWrapper = elements.toolbar.closest('.content-wrapper');
-
-    if (!contentWrapper || !contentArea || !toolbarContainer) {
-        console.error('FloatingToolbar: Required elements not found');
-        return;
-    }
 
     // Handle link editing states
     if (state.currentView === 'linkInput') {
-        if (state.existingLink && state.selectionRect) {
-            // For existing links, position at selection
-            handleFixedModeWithSelection(
-                config,
-                state,
-                elements,
-                contentArea,
-                toolbarContainer as HTMLElement,
-                contentWrapper as HTMLElement,
-                debug
-            );
-            return;
-        } else if (!state.isAtFixedPosition) {
-            // For new links being edited, preserve current position
-            debug('Fixed Mode: Preserving position during link editing', {
-                currentView: state.currentView,
-                existingLink: state.existingLink
-            });
+        if (state.selectionRect) {
+            // For both new and existing links, position at selection
+            elements.toolbar.classList.remove('fixed-position');
+            elements.toolbar.classList.add('following-selection');
+            updateToolbarPosition(config, state, elements, debug);
             return;
         }
     }
@@ -182,15 +213,7 @@ function handleFixedMode(
 
         resetToFixedPosition(state, elements);
     } else if (state.selectionRect) {
-        handleFixedModeWithSelection(
-            config,
-            state,
-            elements,
-            contentArea,
-            toolbarContainer as HTMLElement,
-            contentWrapper as HTMLElement,
-            debug
-        );
+        updateToolbarPosition(config, state, elements, debug);
     }
 }
 
@@ -214,104 +237,44 @@ function resetToFixedPosition(
     elements.toolbar.style.removeProperty('--toolbar-width');
 }
 
-function handleFixedModeWithSelection(
+function updateToolbarPosition(
     config: ToolbarConfig,
     state: ToolbarState,
     elements: ToolbarElements,
-    contentArea: HTMLElement,
-    toolbarContainer: HTMLElement,
-    contentWrapper: HTMLElement,
     debug: (message: string, data?: any) => void
 ): void {
     if (!elements.toolbar || !state.selectionRect) return;
 
+    const rect = state.selectionRect;
+    const contentWrapper = elements.toolbar.closest('.content-wrapper');
+    if (!contentWrapper) return;
+
+    const wrapperRect = contentWrapper.getBoundingClientRect();
+    const toolbarRect = elements.toolbar.getBoundingClientRect();
+
     // Store current width before any changes
-    const currentWidth = elements.toolbar.offsetWidth;
+    const currentWidth = toolbarRect.width;
     elements.toolbar.style.setProperty('--toolbar-width', `${currentWidth}px`);
 
-    const rect = state.selectionRect;
-    const toolbarRect = elements.toolbar.getBoundingClientRect();
-    const containerRect = toolbarContainer.getBoundingClientRect();
-    const contentWrapperRect = contentWrapper.getBoundingClientRect();
-
-    // Log viewport measurements
-    const measurements: ViewportMeasurements = {
-        window: {
-            innerHeight: window.innerHeight,
-            innerWidth: window.innerWidth,
-            scrollY: window.scrollY,
-            pageYOffset: window.pageYOffset
-        },
-        viewport: {
-            top: 0,
-            bottom: window.innerHeight,
-            visualTop: window.visualViewport?.offsetTop || 0,
-            visualHeight: window.visualViewport?.height || window.innerHeight
-        },
-        contentArea: {
-            rect: contentArea.getBoundingClientRect(),
-            offsetTop: contentArea.offsetTop,
-            offsetHeight: contentArea.offsetHeight,
-            scrollTop: contentArea.scrollTop
-        },
-        container: {
-            rect: contentWrapperRect,
-            offsetTop: (contentWrapper as HTMLElement).offsetTop,
-            offsetHeight: (contentWrapper as HTMLElement).offsetHeight,
-            scrollTop: (contentWrapper as HTMLElement).scrollTop
-        },
-        toolbar: {
-            rect: elements.toolbar.getBoundingClientRect(),
-            offsetTop: elements.toolbar.offsetTop,
-            offsetHeight: elements.toolbar.offsetHeight
-        }
-    };
-    debug('Viewport and Window Measurements', measurements);
-
-    // Calculate space availability
-    const spaceCalculations: SpaceCalculations = {
-        selectionTopFromViewport: rect.top,
-        selectionBottomFromViewport: rect.bottom,
-        toolbarTotalHeight: toolbarRect.height + config.offset.y,
-        viewportHeight: window.innerHeight,
-        visualViewportHeight: window.visualViewport?.height || window.innerHeight,
-        spaceAboveSelection: rect.top,
-        spaceBelowSelection: window.innerHeight - rect.bottom,
-        containerTopOffset: containerRect.top,
-        containerBottomOffset: containerRect.bottom
-    };
-    debug('Detailed Space Calculations', spaceCalculations);
-
+    // Calculate positions
     const spaceAbove = rect.top;
     const spaceBelow = window.innerHeight - rect.bottom;
     const shouldPositionBelow = spaceAbove < (toolbarRect.height + config.offset.y);
 
-    // Calculate the center position relative to the content area
-    let left = rect.left + (rect.width / 2) - contentWrapperRect.left;
-
-    // Ensure the toolbar stays within the content area bounds
-    const minLeft = currentWidth / 2;
-    const maxLeft = contentWrapperRect.width - currentWidth / 2;
+    // Calculate horizontal position
+    let left = rect.left + (rect.width / 2) - wrapperRect.left;
+    const minLeft = toolbarRect.width / 2;
+    const maxLeft = wrapperRect.width - (toolbarRect.width / 2);
     left = Math.max(minLeft, Math.min(left, maxLeft));
 
-    debug('Fixed Mode: Horizontal positioning', {
-        originalLeft: rect.left + (rect.width / 2) - contentWrapperRect.left,
-        constrainedLeft: left,
-        bounds: { min: minLeft, max: maxLeft },
-        containerWidth: contentWrapperRect.width
-    });
-
-    // Calculate final position relative to container
-    const relativeLeft = left - (currentWidth / 2);
-    const top = shouldPositionBelow
-        ? (rect.top - contentWrapperRect.top + rect.height + config.offset.y)
-        : (rect.top - contentWrapperRect.top - toolbarRect.height - config.offset.y);
-
-    debug('Fixed Mode: Final position', {
-        top,
-        relativeLeft,
+    debug('Updating toolbar position', {
+        selectionRect: rect,
+        wrapperRect,
+        toolbarRect,
+        spaceAbove,
+        spaceBelow,
         shouldPositionBelow,
-        isFollowingSelection: true
+        calculatedLeft: left
     });
 
     // Position the toolbar
@@ -321,9 +284,14 @@ function handleFixedModeWithSelection(
     state.isAtFixedPosition = false;
 
     elements.toolbar.style.position = 'absolute';
-    elements.toolbar.style.top = `${top}px`;
-    elements.toolbar.style.left = `${relativeLeft}px`;
-    elements.toolbar.style.transform = 'none';
+    elements.toolbar.style.left = `${left}px`;
+    elements.toolbar.style.transform = 'translateX(-50%)';
+
+    if (shouldPositionBelow) {
+        elements.toolbar.style.top = `${rect.bottom - wrapperRect.top + config.offset.y}px`;
+    } else {
+        elements.toolbar.style.top = `${rect.top - wrapperRect.top - toolbarRect.height - config.offset.y}px`;
+    }
 }
 
 export function resetToolbar(
@@ -362,11 +330,13 @@ export function updateView(
 ): void {
     if (!this.elements.toolbar) return;
 
-    // In fixed mode, toolbar is always displayed
+    // In fixed mode, toolbar is always displayed and has fixed-position class
     if (this.state.isFixed) {
         this.elements.toolbar.classList.add('visible');
+        this.elements.toolbar.classList.add('fixed-position');
     } else {
         this.elements.toolbar.classList.toggle('visible', this.state.isVisible);
+        this.elements.toolbar.classList.remove('fixed-position');
     }
 
     // Handle current view

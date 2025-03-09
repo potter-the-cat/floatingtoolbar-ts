@@ -18,17 +18,29 @@ export function handleLinkButtonClick(
     // Set processing flag
     this.state.isProcessingLinkClick = true;
 
-    // Store current width and position before switching views
+    // Store current width and ensure centered positioning
     if (this.elements.toolbar) {
         const rect = this.elements.toolbar.getBoundingClientRect();
+        
+        // Store current width for transition
         this.elements.toolbar.style.setProperty('--toolbar-width', `${rect.width}px`);
         
-        // Preserve the current position if not at fixed position
+        // Ensure toolbar is centered using transforms
         if (!this.state.isAtFixedPosition) {
-            const currentTop = this.elements.toolbar.style.top;
-            const currentLeft = this.elements.toolbar.style.left;
-            this.elements.toolbar.dataset.preservedTop = currentTop;
-            this.elements.toolbar.dataset.preservedLeft = currentLeft;
+            const contentWrapper = this.elements.toolbar.closest('.content-wrapper');
+            if (contentWrapper) {
+                const wrapperRect = contentWrapper.getBoundingClientRect();
+                const currentTop = rect.top - wrapperRect.top;
+                
+                // Position using absolute positioning and transform
+                this.elements.toolbar.style.position = 'absolute';
+                this.elements.toolbar.style.top = `${currentTop}px`;
+                this.elements.toolbar.style.left = '50%';
+                this.elements.toolbar.style.transform = 'translateX(-50%)';
+                
+                // Store the vertical position only
+                this.elements.toolbar.dataset.preservedTop = `${currentTop}px`;
+            }
         }
     }
     
@@ -53,13 +65,11 @@ export function handleLinkButtonClick(
     this.state.currentView = 'linkInput';
     this.state.isVisible = true;
 
-    // Restore preserved position if available
+    // Restore vertical position if needed
     if (this.elements.toolbar && !this.state.isAtFixedPosition) {
         const preservedTop = this.elements.toolbar.dataset.preservedTop;
-        const preservedLeft = this.elements.toolbar.dataset.preservedLeft;
-        if (preservedTop && preservedLeft) {
+        if (preservedTop) {
             this.elements.toolbar.style.top = preservedTop;
-            this.elements.toolbar.style.left = preservedLeft;
         }
     }
 

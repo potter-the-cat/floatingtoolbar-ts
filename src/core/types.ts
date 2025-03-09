@@ -66,24 +66,26 @@ export interface ToolbarConfig {
 }
 
 export interface ToolbarState {
-    isFixed: boolean;
     isVisible: boolean;
-    currentView: 'initial' | 'linkInput';
-    currentSelection: Selection | null;
-    selectedText: string;
-    selectionRange: Range | null;
-    position: { x: number; y: number };
-    selectionRect: DOMRect | null;
-    existingLink: HTMLAnchorElement | null;
-    resizeTimeout: number | null;
-    activeFormats: Set<string>;
-    dropCapElements: Set<HTMLElement>;
-    isProcessingLinkClick: boolean;
+    isFixed: boolean;
     isAtFixedPosition: boolean;
+    currentView: 'initial' | 'linkInput' | null;
+    selectedText: string | null;
+    selectionRect: DOMRect | null;
+    selectionRange: Range | null;
+    currentSelection: Selection | null;
+    existingLink: HTMLAnchorElement | null;
+    isProcessingLinkClick: boolean;
+    positionObserver: IntersectionObserver | null;
+    position?: { x: number; y: number };
+    resizeTimeout?: number;
+    activeFormats?: Set<string>;
+    dropCapElements?: Set<HTMLElement>;
 }
 
 export interface ToolbarElements {
     toolbar: HTMLElement | null;
+    toolbarContainer: HTMLElement | null;
     toolbarInitial: HTMLElement | null;
     toolbarLinkInput: HTMLElement | null;
     linkButton: HTMLButtonElement | null;

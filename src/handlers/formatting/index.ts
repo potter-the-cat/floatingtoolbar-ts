@@ -365,10 +365,13 @@ export function updateFormatButtonStates(
             // Update button state
             if (isActive) {
                 button.classList.add('active');
+                if (!this.state.activeFormats) {
+                    this.state.activeFormats = new Set<string>();
+                }
                 this.state.activeFormats.add(format);
             } else {
                 button.classList.remove('active');
-                this.state.activeFormats.delete(format);
+                this.state.activeFormats?.delete(format);
             }
         }
     }
@@ -440,5 +443,5 @@ export function clearFormatButtonStates(
     }
 
     // Clear the active formats set
-    this.state.activeFormats.clear();
+    this.state.activeFormats?.clear();
 } 
