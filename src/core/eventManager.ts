@@ -10,6 +10,7 @@ interface EventHandlers {
     handleRemoveLinkClick: (e: MouseEvent) => void;
     handleVisitLinkClick: (e: MouseEvent) => void;
     handleLinkInputChange: (e: Event) => void;
+    handlePaste: (e: ClipboardEvent) => void;
     hasSelection: () => boolean;
     updateView: () => void;
     updatePosition: () => void;
@@ -221,6 +222,11 @@ export function setupEventListeners(
             buttonId: elements.fontButton?.id
         });
     }
+
+    // Add paste event listener to preserve formatting
+    contentArea.addEventListener('paste', (e: ClipboardEvent) => {
+        handlers.handlePaste(e);
+    });
 }
 
 export function destroyEventListeners(
@@ -228,12 +234,13 @@ export function destroyEventListeners(
     elements: ToolbarElements,
     handlers: {
         handleSelection: (e: Event) => void;
-        handleFormat: (format: string) => void;
+        handleFormat: (format: FormatType) => void;
         handleLinkButtonClick: (e: MouseEvent) => void;
         handleSaveLinkClick: (e: MouseEvent) => void;
         handleCancelLinkClick: (e: MouseEvent) => void;
         handleRemoveLinkClick: (e: MouseEvent) => void;
         handleVisitLinkClick: (e: MouseEvent) => void;
+        handlePaste: (e: ClipboardEvent) => void;
         hasSelection: () => boolean;
     }
 ): void {
@@ -288,7 +295,7 @@ export function destroyEventListeners(
 
     buttonRemovals.forEach(({ element, format }) => {
         if (element) {
-            element.removeEventListener('click', () => handlers.handleFormat(format));
+            element.removeEventListener('click', () => handlers.handleFormat(format as FormatType));
         }
     });
     

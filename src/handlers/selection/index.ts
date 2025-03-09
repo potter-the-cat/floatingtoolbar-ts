@@ -193,4 +193,144 @@ export function hasSelection(this: SelectionHandlerContext): boolean {
         return contentArea.contains(range.commonAncestorContainer);
     }
     return false;
+}
+
+/**
+ * Handles paste events to preserve formatting from external sources
+ * @param this SelectionHandlerContext
+ * @param event ClipboardEvent
+ */
+export function handlePaste(
+    this: SelectionHandlerContext,
+    event: ClipboardEvent
+): void {
+    // Prevent default paste behavior
+    event.preventDefault();
+    
+    // Get clipboard data
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+    
+    // Try to get HTML content first (this preserves formatting)
+    let content = clipboardData.getData('text/html');
+    const plainText = clipboardData.getData('text/plain');
+    
+    this.debug('Paste event detected', {
+        hasHtml: !!content,
+        htmlLength: content?.length,
+        plainTextLength: plainText?.length
+    });
+    
+    if (content) {
+        // Sanitize the HTML content
+        content = sanitizeHtml(content);
+        
+        // Insert the sanitized HTML at the current selection
+        insertHtmlAtSelection(content);
+    } else if (plainText) {
+        // Fall back to plain text if no HTML is available
+        document.execCommand('insertText', false, plainText);
+    }
+    
+    // Update the toolbar state to reflect any formatting in the pasted content
+    this.updateFormatButtonStates();
+    this.updateView();
+}
+
+/**
+ * Sanitizes HTML content from clipboard to ensure it's safe and compatible
+ * @param html The HTML content to sanitize
+ * @returns Sanitized HTML
+ */
+function sanitizeHtml(html: string): string {
+    // Create a temporary div to parse the HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Remove potentially harmful elements and attributes
+    const elementsToRemove = ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'];
+    elementsToRemove.forEach(tag => {
+        const elements = tempDiv.querySelectorAll(tag);
+        elements.forEach(el => el.remove());
+    });
+    
+    // Remove event handlers and javascript: URLs
+    const allElements = tempDiv.querySelectorAll('*');
+    allElements.forEach(el => {
+        // Remove all attributes that start with "on" (event handlers)
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.startsWith('on') || (attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:'))) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    
+    // Map external formatting to our internal format
+    mapExternalFormatting(tempDiv);
+    
+    return tempDiv.innerHTML;
+}
+
+/**
+ * Maps external formatting (from Word, Google Docs, etc.) to our internal format
+ * @param container The container element with the pasted content
+ */
+function mapExternalFormatting(container: HTMLElement): void {
+    // Google Docs specific formatting
+    const googleDocsSpans = container.querySelectorAll('span[style*="font-weight: 700"], span[style*="font-weight:700"]');
+    googleDocsSpans.forEach(span => {
+        const strong = document.createElement('strong');
+        strong.innerHTML = span.innerHTML;
+        span.parentNode?.replaceChild(strong, span);
+    });
+    
+    // Microsoft Word specific formatting
+    // Word often uses specific class names or mso- prefixed styles
+    const wordElements = container.querySelectorAll('[class*="Mso"], [style*="mso-"]');
+    wordElements.forEach(el => {
+        // Convert Word's specific formatting to standard HTML
+        const style = (el as HTMLElement).style;
+        
+        // Handle font-weight
+        if (style.fontWeight === 'bold' || parseInt(style.fontWeight) >= 700) {
+            const strong = document.createElement('strong');
+            strong.innerHTML = el.innerHTML;
+            el.parentNode?.replaceChild(strong, el);
+        }
+        
+        // Handle italics
+        if (style.fontStyle === 'italic') {
+            const em = document.createElement('em');
+            em.innerHTML = el.innerHTML;
+            el.parentNode?.replaceChild(em, el);
+        }
+        
+        // Handle underline
+        if (style.textDecoration === 'underline') {
+            const u = document.createElement('u');
+            u.innerHTML = el.innerHTML;
+            el.parentNode?.replaceChild(u, el);
+        }
+    });
+}
+
+/**
+ * Inserts HTML content at the current selection
+ * @param html The HTML content to insert
+ */
+function insertHtmlAtSelection(html: string): void {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    
+    // Create a fragment with the HTML content
+    const fragment = range.createContextualFragment(html);
+    range.insertNode(fragment);
+    
+    // Move the cursor to the end of the inserted content
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
 } 

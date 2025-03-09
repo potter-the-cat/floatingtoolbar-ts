@@ -19,6 +19,7 @@ export interface InitializeContext {
     handleRemoveLinkClick: (e: MouseEvent) => void;
     handleVisitLinkClick: (e: MouseEvent) => void;
     handleLinkInputChange: (e: Event) => void;
+    handlePaste: (e: ClipboardEvent) => void;
     hasSelection: () => boolean;
     updatePosition: () => void;
     resetToolbar: () => void;
@@ -58,6 +59,7 @@ export function initialize(
             handleRemoveLinkClick: this.handleRemoveLinkClick.bind(this),
             handleVisitLinkClick: this.handleVisitLinkClick.bind(this),
             handleLinkInputChange: this.handleLinkInputChange.bind(this),
+            handlePaste: this.handlePaste.bind(this),
             hasSelection: this.hasSelection.bind(this),
             updateView: this.updateView.bind(this),
             updatePosition: this.updatePosition.bind(this),

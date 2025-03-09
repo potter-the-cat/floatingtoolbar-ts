@@ -291,6 +291,7 @@ export interface FormatHandlerContext extends BaseHandlerContext {
 
 export interface InitializeContext extends BaseHandlerContext {
     resetToolbar: () => void;
+    handleFormat: (format: FormatType) => void;
 }
 
 export interface PositionConfig {

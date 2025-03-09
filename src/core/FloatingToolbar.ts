@@ -4,7 +4,11 @@ import { updatePosition, resetToolbar, updateView } from '../ui/positioning';
 import { cacheElements } from '../utils/elements';
 import { setupStructure } from '../ui/structure';
 import { initialize } from './initialize';
-import { handleSelection, hasSelection } from '../handlers/selection';
+import { 
+    handleSelection, 
+    hasSelection, 
+    handlePaste 
+} from '../handlers/selection';
 import { 
     handleLinkButtonClick, 
     handleSaveLinkClick, 
@@ -54,7 +58,8 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
     public handleRemoveLinkClick: (e: MouseEvent) => void;
     public handleLinkInputChange: (e: Event) => void;
     public handleVisitLinkClick: (e: MouseEvent) => void;
-    public handleFormat: (format: string) => void;
+    public handlePaste: (e: ClipboardEvent) => void;
+    public handleFormat: (format: FormatType) => void;
     public hasSelection: () => boolean;
     public updateVisitButton: (url: string) => void;
     public updateFormatButtonStates: () => void;
@@ -219,21 +224,22 @@ export class FloatingToolbar implements SelectionHandlerContext, LinkHandlerCont
         };
 
         // Bind methods
-        this.handleSelection = handleSelection.bind(this) as (event: Event) => void;
+        this.handleSelection = handleSelection.bind(this);
         this.handleLinkButtonClick = handleLinkButtonClick.bind(this);
         this.handleSaveLinkClick = handleSaveLinkClick.bind(this);
         this.handleCancelLinkClick = handleCancelLinkClick.bind(this);
         this.handleRemoveLinkClick = handleRemoveLinkClick.bind(this);
         this.handleLinkInputChange = handleLinkInputChange.bind(this);
         this.handleVisitLinkClick = handleVisitLinkClick.bind(this);
-        this.handleFormat = handleFormat.bind(this) as (format: string) => void;
+        this.handlePaste = handlePaste.bind(this);
+        this.handleFormat = handleFormat.bind(this);
         this.hasSelection = hasSelection.bind(this);
         this.updateVisitButton = updateVisitButton.bind(this);
         this.updateFormatButtonStates = updateFormatButtonStates.bind(this);
         this.clearFormatButtonStates = clearFormatButtonStates.bind(this);
         this.updateView = updateView.bind(this);
         this.checkForExistingLink = checkForExistingLink.bind(this);
-        this.initialize = initialize.bind(this);
+        this.initialize = initialize.bind(this as any);
         this.resetToolbar = () => resetToolbar(this.state, this.elements, this.clearFormatButtonStates);
 
         // Find target element and set up structure
