@@ -73,8 +73,16 @@ export function handleLinkButtonClick(
         }
     }
 
+    // Store the current scroll position before updating the view
+    const originalScrollPosition = window.scrollY;
+
     // Update view
     this.updateView();
+
+    // Restore scroll position if it changed during view update
+    if (window.scrollY !== originalScrollPosition) {
+        window.scrollTo(0, originalScrollPosition);
+    }
 
     // Wait for next frame to ensure DOM has updated
     requestAnimationFrame(() => {
@@ -91,7 +99,20 @@ export function handleLinkButtonClick(
                     if (this.elements.linkInput) {
                         this.elements.linkInput.disabled = false;
                         this.elements.linkInput.style.pointerEvents = 'auto';
-                        this.elements.linkInput.focus();
+                        
+                        // Prevent scrolling when focusing
+                        const originalScrollPosition = window.scrollY;
+                        try {
+                            // Use preventScroll option if supported
+                            this.elements.linkInput.focus({ preventScroll: true });
+                        } catch (e) {
+                            // Fallback for browsers that don't support preventScroll
+                            this.elements.linkInput.focus();
+                        }
+                        
+                        // Restore scroll position in case it changed
+                        window.scrollTo(0, originalScrollPosition);
+                        
                         if (this.elements.linkInput.value) {
                             this.elements.linkInput.select(); // Select all text if there's existing content
                         }
@@ -103,7 +124,7 @@ export function handleLinkButtonClick(
                 const buttonWidth = 32; // Width per button
                 const buttonCount = this.state.existingLink ? 4 : 3; // 3 buttons normally, 4 with remove button
                 const padding = 8; // Total horizontal padding
-                const gaps = 4 * (buttonCount + 1); // Gap between elements
+                const gaps = 4 * (buttonCount + 1);
                 
                 const minWidth = inputWidth + (buttonWidth * buttonCount) + padding + gaps;
                 
@@ -140,6 +161,9 @@ export function handleSaveLinkClick(
     if (url && this.state.selectedText && this.state.selectionRange) {
         this.debug("User has saved the link", url);
         this.debug("Selected text", this.state.selectedText);
+
+        // Store current scroll position before making changes
+        const originalScrollPosition = window.scrollY;
 
         try {
             if (this.state.existingLink) {
@@ -189,6 +213,11 @@ export function handleSaveLinkClick(
 
             // Update view
             this.updateView();
+            
+            // Restore scroll position if it changed during the process
+            if (window.scrollY !== originalScrollPosition) {
+                window.scrollTo(0, originalScrollPosition);
+            }
         } catch (error) {
             console.error("Error handling link:", error);
             console.error("Error details:", {
@@ -197,6 +226,11 @@ export function handleSaveLinkClick(
                 existingLink: this.state.existingLink,
                 error: (error as Error).message
             });
+            
+            // Restore scroll position even if there was an error
+            if (window.scrollY !== originalScrollPosition) {
+                window.scrollTo(0, originalScrollPosition);
+            }
         }
     } else {
         this.debug("No URL or selection available", {
@@ -215,6 +249,9 @@ export function handleCancelLinkClick(
     e.preventDefault();
     e.stopPropagation();
 
+    // Store current scroll position before making changes
+    const originalScrollPosition = window.scrollY;
+
     // Update state but maintain visibility and position
     this.state.currentView = 'initial';
     if (this.elements.linkInput) {
@@ -228,6 +265,11 @@ export function handleCancelLinkClick(
 
     // Update view
     this.updateView();
+    
+    // Restore scroll position if it changed during the process
+    if (window.scrollY !== originalScrollPosition) {
+        window.scrollTo(0, originalScrollPosition);
+    }
 }
 
 export function handleRemoveLinkClick(
@@ -238,6 +280,9 @@ export function handleRemoveLinkClick(
     e.stopPropagation();
 
     if (this.state.existingLink && this.state.selectionRange) {
+        // Store current scroll position before making changes
+        const originalScrollPosition = window.scrollY;
+        
         try {
             // Get the text content of the link
             const textContent = this.state.existingLink.textContent;
@@ -258,17 +303,32 @@ export function handleRemoveLinkClick(
             this.state.selectionRange = null;
             this.state.selectionRect = null;
             this.state.existingLink = null;
-            if (this.elements.linkInput) {
-                this.elements.linkInput.value = '';
+            
+            // Reset view state to initial and set persistent position
+            this.state.currentView = 'initial';
+            this.state.isAtPersistentPosition = true;
+            
+            // Update toolbar classes for persistent position
+            if (this.elements.toolbar) {
+                this.elements.toolbar.classList.add('persistent-position');
+                this.elements.toolbar.classList.remove('following-selection');
+                this.elements.toolbar.style.removeProperty('--toolbar-width');
             }
             
-            // Reset view state to initial
-            this.state.currentView = 'initial';
-
             // Update view
             this.updateView();
+            
+            // Restore scroll position if it changed during the process
+            if (window.scrollY !== originalScrollPosition) {
+                window.scrollTo(0, originalScrollPosition);
+            }
         } catch (error) {
             console.error("Error removing link:", error);
+            
+            // Restore scroll position even if there was an error
+            if (window.scrollY !== originalScrollPosition) {
+                window.scrollTo(0, originalScrollPosition);
+            }
         }
     }
 }

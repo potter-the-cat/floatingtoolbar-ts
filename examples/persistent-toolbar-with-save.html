@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Toolbar with Save Demo</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            color: #333;
+            scroll-behavior: smooth;
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: visible;
+        }
+
+        .toolbar-section {
+            padding-bottom: 1rem;
+            width: 100%;
+            margin-bottom: 0;
+            /* Add space for the fixed toolbar */
+            padding-top: 50px;
+        }
+
+        .save-controls {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+            z-index: 1; /* Ensure it's above other content but below the toolbar */
+        }
+
+        .save-controls label {
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .save-controls select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: white;
+            font-size: 14px;
+        }
+
+        .save-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .save-button:hover {
+            background-color: #45a049;
+        }
+
+        .content-section {
+            padding-top: 1rem;
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .content {
+            min-height: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Basic content styling */
+        .content h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .content h2 {
+            color: #444;
+        }
+
+        .content p {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .content blockquote {
+            border-left: 4px solid #ddd;
+            margin: 0;
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .content code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .content hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 20px 0;
+        }
+
+        /* List styles */
+        .content ul, .content ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+            color: #666;
+        }
+
+        .content ul li, .content ol li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .content ul {
+            list-style-type: disc;
+        }
+
+        .content ol {
+            list-style-type: decimal;
+        }
+
+        /* Nested list styles */
+        .content ul ul, .content ol ol,
+        .content ul ol, .content ol ul {
+            margin: 0.5rem 0 0.5rem 1rem;
+        }
+
+        /* Drop cap styles */
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 3.5em;
+            padding: 0.1em 0.1em 0 0;
+            line-height: 0.7;
+            color: #333;
+        }
+
+        /* Toolbar Styles */
+        #persistent-toolbar {
+            background: #000000;
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            pointer-events: auto;
+            width: auto;
+            min-width: min-content;
+            will-change: top, width;
+        }
+
+        /* Chevron styles */
+        #persistent-toolbar::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #000000;
+            bottom: -6px;
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: top, bottom;
+        }
+
+        #persistent-toolbar.below::after {
+            border-top: none;
+            border-bottom: 6px solid #000000;
+            bottom: auto;
+            top: -6px;
+        }
+
+        /* Style for fixed position at top */
+        #persistent-toolbar.persistent-position {
+            white-space: nowrap;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Style for floating position (when selecting text) */
+        #persistent-toolbar:not(.persistent-position) {
+            max-width: min(100vw - 40px, 800px);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Style for link input mode */
+        #persistent-toolbar.following-selection {
+            width: auto;
+            min-width: min-content;
+            position: absolute;
+            z-index: 1001;
+        }
+
+        .toolbar-initial {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+            position: relative;
+        }
+
+        .toolbar-group:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 6px;
+            height: 20px;
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Only allow wrapping when space is actually limited */
+        @media (max-width: 600px) {
+            #persistent-toolbar:not(.persistent-position) .toolbar-initial {
+                flex-wrap: wrap;
+                row-gap: 8px;
+            }
+        }
+
+        /* Ensure toolbar container spans full width */
+        .toolbar-container {
+            height: 40px;
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Button Styles */
+        #persistent-toolbar button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            font-size: 14px;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        #persistent-toolbar button .material-icons {
+            font-size: 20px;
+        }
+
+        #persistent-toolbar button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #persistent-toolbar button.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Link Input Styles */
+        .toolbar-link-input {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            flex-wrap: nowrap;
+            width: auto;
+        }
+
+        #persistent-toolbar #link-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            padding: 4px 8px;
+            font-size: 14px;
+            width: 180px;
+            flex: none;
+        }
+
+        #persistent-toolbar #link-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .toolbar-link-input .toolbar-button {
+            flex: none;
+        }
+
+        /* Output Display Styles */
+        .output-container {
+            margin-top: 20px;
+            display: none;
+            scroll-margin-top: 100px;
+        }
+
+        .output-container.visible {
+            display: block;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .output-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .copy-button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copy-button:hover {
+            background-color: #0b7dda;
+        }
+
+        .output-content {
+            padding: 15px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .html-preview {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .html-preview-header {
+            background-color: #f0f0f0;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .html-preview-content {
+            padding: 15px;
+            background-color: white;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .output-tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .output-tab {
+            padding: 8px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            font-size: 14px;
+        }
+
+        .output-tab.active {
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #f8f8f8;
+            position: relative;
+            bottom: -1px;
+            font-weight: 500;
+        }
+
+        .output-panel {
+            display: none;
+        }
+
+        .output-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <!-- Toolbar section -->
+        <div class="toolbar-section">
+            <div class="toolbar-container">
+                <div id="persistent-toolbar" class="persistent-position">
+                    <div class="toolbar-initial">
+                        <!-- Text formatting group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-bold-button" title="Bold">
+                                <span class="material-icons">format_bold</span>
+                            </button>
+                            <button id="persistent-toolbar-italic-button" title="Italic">
+                                <span class="material-icons">format_italic</span>
+                            </button>
+                            <button id="persistent-toolbar-underline-button" title="Underline">
+                                <span class="material-icons">format_underline</span>
+                            </button>
+                            <button id="persistent-toolbar-strikethrough-button" title="Strikethrough">
+                                <span class="material-icons">format_strikethrough</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Script formatting group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-subscript-button" title="Subscript">
+                                <span class="material-icons">subscript</span>
+                            </button>
+                            <button id="persistent-toolbar-superscript-button" title="Superscript">
+                                <span class="material-icons">superscript</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Headings group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-h1-button" title="Heading 1">
+                                <span class="material-icons">looks_one</span>
+                            </button>
+                            <button id="persistent-toolbar-h2-button" title="Heading 2">
+                                <span class="material-icons">looks_two</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Special formatting group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-drop-cap-button" title="Drop Cap">
+                                <span class="material-icons">format_letter_spacing</span>
+                            </button>
+                            <button id="persistent-toolbar-code-button" title="Code">
+                                <span class="material-icons">code</span>
+                            </button>
+                            <button id="persistent-toolbar-quote-button" title="Quote">
+                                <span class="material-icons">format_quote</span>
+                            </button>
+                            <button id="persistent-toolbar-hr-button" title="Horizontal Rule">
+                                <span class="material-icons">horizontal_rule</span>
+                            </button>
+                        </div>
+
+                        <!-- List formatting group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-bullet-list-button" title="Bullet List">
+                                <span class="material-icons">format_list_bulleted</span>
+                            </button>
+                            <button id="persistent-toolbar-number-list-button" title="Numbered List">
+                                <span class="material-icons">format_list_numbered</span>
+                            </button>
+                        </div>
+
+                        <!-- Alignment group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-align-left-button" title="Align Left">
+                                <span class="material-icons">format_align_left</span>
+                            </button>
+                            <button id="persistent-toolbar-align-center-button" title="Align Center">
+                                <span class="material-icons">format_align_center</span>
+                            </button>
+                            <button id="persistent-toolbar-align-right-button" title="Align Right">
+                                <span class="material-icons">format_align_right</span>
+                            </button>
+                            <button id="persistent-toolbar-align-justify-button" title="Justify">
+                                <span class="material-icons">format_align_justify</span>
+                            </button>
+                        </div>
+
+                        <!-- Link group -->
+                        <div class="toolbar-group">
+                            <button id="persistent-toolbar-link-button" title="Link">
+                                <span class="material-icons">link</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="toolbar-link-input">
+                        <input type="text" id="link-input" placeholder="Enter URL...">
+                        <button id="visit-link" class="toolbar-button" type="button" title="Visit URL">
+                            <span class="material-icons">open_in_new</span>
+                        </button>
+                        <button id="remove-link" class="toolbar-button" type="button" title="Remove link">
+                            <span class="material-icons">delete</span>
+                        </button>
+                        <button id="save-link" class="toolbar-button" type="button" title="Save">
+                            <span class="material-icons">check</span>
+                        </button>
+                        <button id="cancel-link" class="toolbar-button" type="button" title="Cancel">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Save Controls -->
+            <div class="save-controls">
+                <div>
+                    <label for="format-select">Save Format:</label>
+                    <select id="format-select">
+                        <option value="html">HTML</option>
+                        <option value="text">Plain Text</option>
+                        <option value="markdown">Markdown</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+                <button id="save-button" class="save-button">
+                    <span class="material-icons">save</span> Save Content
+                </button>
+            </div>
+        
+            <!-- Content area -->
+            <div class="content" contenteditable="true">
+                <h1>Persistent Toolbar with Save Demo</h1>
+                <p>This is a demo of the persistent toolbar mode with an external save button. The toolbar stays at the top until you select text, then it moves to the selection.</p>
+                <p>Try formatting this text with the toolbar above, then use the save button to see the content in different formats.</p>
+                <p>Here's an example of lists:</p>
+                <ul>
+                    <li>Bullet points are great for:</li>
+                    <ul>
+                        <li>Organizing ideas</li>
+                        <li>Making content scannable</li>
+                        <li>Breaking up text</li>
+                    </ul>
+                </ul>
+                <ol>
+                    <li>Numbered lists work well for:</li>
+                    <li>Step-by-step instructions</li>
+                    <li>Prioritized items</li>
+                    <li>Sequential information</li>
+                </ol>
+                <p>You can also <a href="https://example.com">add links</a> to your content.</p>
+                <p>Try using the <code>code</code> formatting for technical terms or snippets.</p>
+                <blockquote>This is a blockquote that you can use for important quotes or callouts in your content.</blockquote>
+                <p>The toolbar includes many formatting options:</p>
+                <ul>
+                    <li><strong>Text formatting</strong>: Bold, italic, underline, strikethrough</li>
+                    <li><strong>Script formatting</strong>: Subscript (H<sub>2</sub>O) and superscript (E=mc<sup>2</sup>)</li>
+                    <li><strong>Headings</strong>: H1 and H2 for structuring your content</li>
+                    <li><strong>Special formatting</strong>: Drop cap, code, quotes, and horizontal rules</li>
+                    <li><strong>Lists</strong>: Bullet and numbered lists</li>
+                    <li><strong>Alignment</strong>: Left, center, right, and justify</li>
+                    <li><strong>Links</strong>: Add URLs to your content</li>
+                </ul>
+                <hr>
+                <p>This horizontal rule above was added using the toolbar.</p>
+            </div>
+            
+            <!-- Output Display -->
+            <div id="output-container" class="output-container">
+                <div class="output-header">
+                    <div class="output-title">Saved Content (<span id="format-label">HTML</span>)</div>
+                    <button id="copy-button" class="copy-button">
+                        <span class="material-icons">content_copy</span> Copy
+                    </button>
+                </div>
+                
+                <!-- HTML format gets tabs for raw and preview -->
+                <div id="html-output-tabs" class="output-tabs" style="display: none;">
+                    <div id="raw-tab" class="output-tab active">Raw HTML</div>
+                    <div id="preview-tab" class="output-tab">Rendered Preview</div>
+                </div>
+                
+                <div id="output-panels">
+                    <!-- Raw output panel (default) -->
+                    <div id="raw-panel" class="output-panel active">
+                        <div id="output-content" class="output-content"></div>
+                    </div>
+                    
+                    <!-- Preview panel (for HTML) -->
+                    <div id="preview-panel" class="output-panel">
+                        <div class="html-preview">
+                            <div class="html-preview-header">
+                                <span>Rendered HTML Preview</span>
+                                <span style="font-size: 12px; color: #666;">Showing how the HTML will appear when rendered</span>
+                            </div>
+                            <div id="html-preview-content" class="html-preview-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../dist/FloatingToolbar.js"></script>
+    <script>
+        // Initialize the toolbar when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.FloatingToolbar) {
+                console.error('FloatingToolbar not loaded');
+                return;
+            }
+
+            const toolbar = FloatingToolbar.init({
+                selector: '.content',
+                mode: 'persistent',
+                offset: { x: 0, y: 10 },
+                toolbarId: 'persistent-toolbar',
+                debug: true, // Set to true to enable debug logging
+                buttons: {
+                    // Text formatting options
+                    text: {
+                        bold: true,
+                        italic: true,
+                        underline: true,
+                        strikethrough: true
+                    },
+                    script: {
+                        subscript: true,
+                        superscript: true
+                    },
+                    heading: {
+                        h1: true,
+                        h2: true
+                    },
+                    special: {
+                        dropCap: true,
+                        code: true,
+                        quote: true,
+                        hr: true
+                    },
+                    list: {
+                        bullet: true,
+                        number: true
+                    },
+                    link: {
+                        url: true
+                    },
+                    alignment: {
+                        left: true,
+                        center: true,
+                        right: true,
+                        justify: true
+                    }
+                },
+                persistentPosition: {
+                    top: 0,
+                    center: true
+                }
+            });
+
+            // Ensure the toolbar container has proper positioning
+            const toolbarContainer = document.querySelector('.toolbar-container');
+            if (toolbarContainer) {
+                toolbarContainer.style.overflow = 'visible';
+            }
+
+            // Setup save functionality
+            const contentElement = document.querySelector('.content');
+            const formatSelect = document.getElementById('format-select');
+            const saveButton = document.getElementById('save-button');
+            const outputContainer = document.getElementById('output-container');
+            const outputContent = document.getElementById('output-content');
+            const formatLabel = document.getElementById('format-label');
+            const copyButton = document.getElementById('copy-button');
+            const htmlPreviewContent = document.getElementById('html-preview-content');
+            const htmlOutputTabs = document.getElementById('html-output-tabs');
+            const rawTab = document.getElementById('raw-tab');
+            const previewTab = document.getElementById('preview-tab');
+            const rawPanel = document.getElementById('raw-panel');
+            const previewPanel = document.getElementById('preview-panel');
+
+            // Convert HTML to Markdown (simple implementation)
+            function htmlToMarkdown(html) {
+                let temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Process the DOM and convert to markdown
+                let markdown = '';
+                
+                // Process nodes recursively
+                function processNode(node, level = 0) {
+                    if (!node) return '';
+                    
+                    let result = '';
+                    const nodeName = node.nodeName.toLowerCase();
+                    
+                    // Text node
+                    if (node.nodeType === 3) {
+                        return node.textContent;
+                    }
+                    
+                    // Element node
+                    if (node.nodeType === 1) {
+                        const childContent = Array.from(node.childNodes)
+                            .map(child => processNode(child, level + 1))
+                            .join('');
+                        
+                        // Handle different element types
+                        switch (nodeName) {
+                            case 'h1':
+                                return `# ${childContent}\n\n`;
+                            case 'h2':
+                                return `## ${childContent}\n\n`;
+                            case 'h3':
+                                return `### ${childContent}\n\n`;
+                            case 'p':
+                                return `${childContent}\n\n`;
+                            case 'strong':
+                            case 'b':
+                                return `**${childContent}**`;
+                            case 'em':
+                            case 'i':
+                                return `*${childContent}*`;
+                            case 'u':
+                                return `<u>${childContent}</u>`;
+                            case 'code':
+                                return `\`${childContent}\``;
+                            case 'blockquote':
+                                return `> ${childContent}\n\n`;
+                            case 'a':
+                                const href = node.getAttribute('href');
+                                return `[${childContent}](${href})`;
+                            case 'ul':
+                                return Array.from(node.childNodes)
+                                    .filter(n => n.nodeName.toLowerCase() === 'li')
+                                    .map(li => `- ${processNode(li, level + 1).trim()}`)
+                                    .join('\n') + '\n\n';
+                            case 'ol':
+                                return Array.from(node.childNodes)
+                                    .filter(n => n.nodeName.toLowerCase() === 'li')
+                                    .map((li, i) => `${i + 1}. ${processNode(li, level + 1).trim()}`)
+                                    .join('\n') + '\n\n';
+                            case 'li':
+                                // For list items, just return the content without bullets/numbers
+                                return childContent;
+                            case 'br':
+                                return '\n';
+                            case 'div':
+                                return childContent;
+                            case 'hr':
+                                return '---\n\n';
+                            case 'sub':
+                                return `<sub>${childContent}</sub>`;
+                            case 'sup':
+                                return `<sup>${childContent}</sup>`;
+                            case 's':
+                            case 'strike':
+                            case 'del':
+                                return `~~${childContent}~~`;
+                            default:
+                                return childContent;
+                        }
+                    }
+                    
+                    return '';
+                }
+                
+                // Process each top-level node
+                Array.from(temp.childNodes).forEach(node => {
+                    markdown += processNode(node);
+                });
+                
+                return markdown.trim();
+            }
+
+            // Save button click handler
+            saveButton.addEventListener('click', () => {
+                const format = formatSelect.value;
+                let content = '';
+                
+                // Get content in the selected format
+                switch (format) {
+                    case 'html':
+                        content = contentElement.innerHTML;
+                        htmlPreviewContent.innerHTML = content;
+                        htmlOutputTabs.style.display = 'flex';
+                        break;
+                    case 'text':
+                        content = contentElement.textContent;
+                        htmlOutputTabs.style.display = 'none';
+                        // Ensure raw panel is active
+                        rawTab.classList.add('active');
+                        previewTab.classList.remove('active');
+                        rawPanel.classList.add('active');
+                        previewPanel.classList.remove('active');
+                        break;
+                    case 'markdown':
+                        content = htmlToMarkdown(contentElement.innerHTML);
+                        htmlOutputTabs.style.display = 'none';
+                        // Ensure raw panel is active
+                        rawTab.classList.add('active');
+                        previewTab.classList.remove('active');
+                        rawPanel.classList.add('active');
+                        previewPanel.classList.remove('active');
+                        break;
+                    case 'json':
+                        const jsonData = {
+                            html: contentElement.innerHTML,
+                            text: contentElement.textContent,
+                            timestamp: new Date().toISOString()
+                        };
+                        content = JSON.stringify(jsonData, null, 2);
+                        htmlOutputTabs.style.display = 'none';
+                        // Ensure raw panel is active
+                        rawTab.classList.add('active');
+                        previewTab.classList.remove('active');
+                        rawPanel.classList.add('active');
+                        previewPanel.classList.remove('active');
+                        break;
+                }
+                
+                // Update the output
+                outputContent.textContent = content;
+                formatLabel.textContent = formatSelect.options[formatSelect.selectedIndex].text;
+                outputContainer.classList.add('visible');
+                
+                // Scroll to the output container
+                setTimeout(() => {
+                    outputContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            });
+            
+            // Tab switching functionality
+            rawTab.addEventListener('click', () => {
+                rawTab.classList.add('active');
+                previewTab.classList.remove('active');
+                rawPanel.classList.add('active');
+                previewPanel.classList.remove('active');
+            });
+            
+            previewTab.addEventListener('click', () => {
+                previewTab.classList.add('active');
+                rawTab.classList.remove('active');
+                previewPanel.classList.add('active');
+                rawPanel.classList.remove('active');
+            });
+            
+            // Format select change handler
+            formatSelect.addEventListener('change', () => {
+                if (outputContainer.classList.contains('visible')) {
+                    // If output is already visible, update it with the new format
+                    saveButton.click();
+                }
+            });
+            
+            // Copy button click handler
+            copyButton.addEventListener('click', () => {
+                const content = outputContent.textContent;
+                navigator.clipboard.writeText(content)
+                    .then(() => {
+                        // Show temporary success message
+                        const originalText = copyButton.innerHTML;
+                        copyButton.innerHTML = '<span class="material-icons">check</span> Copied!';
+                        copyButton.style.backgroundColor = '#4CAF50';
+                        
+                        setTimeout(() => {
+                            copyButton.innerHTML = originalText;
+                            copyButton.style.backgroundColor = '';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Failed to copy to clipboard');
+                    });
+            });
+        });
+    </script>
+</body>
+</html> 

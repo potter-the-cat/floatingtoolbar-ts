@@ -65,13 +65,14 @@ describe('Paste Handler', () => {
     container.setAttribute('contenteditable', 'true');
     document.body.appendChild(container);
     
-    // Reset all mocks before each test
-    jest.clearAllMocks();
+    // Mock document.execCommand for tests
+    document.execCommand = jest.fn();
   });
   
   afterEach(() => {
     // Clean up the DOM after each test
     document.body.removeChild(container);
+    jest.resetAllMocks();
   });
   
   describe('handlePaste', () => {

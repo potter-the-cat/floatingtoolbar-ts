@@ -266,10 +266,18 @@ function updateToolbarPosition(
     elements.toolbar.style.left = `${left}px`;
     elements.toolbar.style.transform = 'translateX(-50%)';
 
+    // Store the current scroll position to prevent unwanted scrolling
+    const originalScrollY = window.scrollY;
+
     if (shouldPositionBelow) {
         elements.toolbar.style.top = `${rect.bottom - wrapperRect.top + config.offset.y}px`;
     } else {
         elements.toolbar.style.top = `${rect.top - wrapperRect.top - toolbarRect.height - config.offset.y}px`;
+    }
+
+    // Restore scroll position if it changed
+    if (window.scrollY !== originalScrollY) {
+        window.scrollTo(0, originalScrollY);
     }
 }
 
@@ -345,7 +353,17 @@ export function updateView(
                 // Focus the input after a short delay to ensure it's visible
                 setTimeout(() => {
                     if (this.elements.linkInput) {
-                        this.elements.linkInput.focus();
+                        // Prevent scrolling when focusing
+                        const originalScrollPosition = window.scrollY;
+                        try {
+                            // Use preventScroll option if supported
+                            this.elements.linkInput.focus({ preventScroll: true });
+                        } catch (e) {
+                            // Fallback for browsers that don't support preventScroll
+                            this.elements.linkInput.focus();
+                        }
+                        // Restore scroll position in case it changed
+                        window.scrollTo(0, originalScrollPosition);
                     }
                 }, 50);
             }

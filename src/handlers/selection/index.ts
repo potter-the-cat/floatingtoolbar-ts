@@ -16,7 +16,12 @@ export function handleSelection(
     event: MouseEvent | KeyboardEvent | Event
 ): void {
     const contentArea = document.querySelector<HTMLElement>(this.config.selector || this.config.content);
-    if (!contentArea) return;
+    if (!contentArea) {
+        this.debug('Content area not found', {
+            selector: this.config.selector || this.config.content
+        });
+        return;
+    }
 
     // Add toolbar identification logging
     this.debug('Handling selection for toolbar', {
@@ -136,6 +141,9 @@ export function handleSelection(
             this.elements.toolbar.style.setProperty('--toolbar-width', `${currentWidth}px`);
         }
 
+        // Store the current scroll position before updating state
+        const originalScrollPosition = window.scrollY;
+
         this.state.selectionRect = range.getBoundingClientRect();
         this.state.currentSelection = selection;
         this.state.selectedText = selectedText;
@@ -165,19 +173,17 @@ export function handleSelection(
             }
         }
         
-        // Add following-selection class to maintain width
-        if (this.elements.toolbar) {
-            this.elements.toolbar.classList.add('following-selection');
-            this.elements.toolbar.classList.add('visible');
-        }
-
-        this.updateFormatButtonStates();
+        // Update the view
         this.updateView();
-        return;
+        
+        // Restore scroll position if it changed during view update
+        if (window.scrollY !== originalScrollPosition) {
+            window.scrollTo(0, originalScrollPosition);
+        }
     }
-
+    
+    // Update format button states based on current selection
     this.updateFormatButtonStates();
-    this.updateView();
 }
 
 export function hasSelection(this: SelectionHandlerContext): boolean {
