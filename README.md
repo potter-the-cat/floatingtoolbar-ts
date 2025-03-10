@@ -324,13 +324,55 @@ npm test
 
 ## Test Structure
 
-- `tests/visual/` - Playwright visual and interaction tests
-  - `formatting.test.ts` - Text formatting functionality tests
-  - `toolbar.visual.test.ts` - Toolbar appearance and positioning tests
-- `src/tests/` - Unit tests
-  - `formatting.test.ts` - Unit tests for formatting handlers
-  - `link.test.ts` - Unit tests for link utilities
-  - `toolbar.test.ts` - Unit tests for toolbar functionality
+The project uses a comprehensive testing approach with both unit tests (Jest) and end-to-end tests (Playwright):
+
+### Unit Tests (`tests/unit/`)
+
+Unit tests are organized by component type:
+
+- **Core Tests** (`tests/unit/core/`)
+  - Tests for the core functionality of the toolbar
+  - Includes tests for initialization, event handling, and state management
+
+- **UI Tests** (`tests/unit/ui/`)
+  - Tests for UI components and rendering
+  - Includes tests for toolbar HTML generation and positioning
+
+- **Handler Tests** (`tests/unit/handlers/`)
+  - **Selection Handlers** (`tests/unit/handlers/selection/`)
+    - Tests for text selection functionality
+  - **Link Handlers** (`tests/unit/handlers/link/`)
+    - Tests for link creation, editing, and removal
+  - **Font Handlers** (`tests/unit/handlers/font/`)
+    - Tests for font selection and application
+
+### End-to-End Tests (`playwright/tests/`)
+
+Playwright tests are divided into two categories:
+
+- **Visual Tests** (`playwright/tests/visual/`)
+  - `toolbar.test.ts` - Tests for toolbar appearance and positioning
+  - `alignment.visual.test.ts` - Visual tests for text alignment features
+  - `font.visual.test.ts` - Visual tests for font selection and application
+
+- **Functional Tests** (`playwright/tests/functional/`)
+  - `formatting.test.ts` - Tests for text formatting functionality
+  - `alignment.test.ts` - Tests for text alignment functionality
+
+### Running Tests
+
+To run all tests:
+
+```bash
+# Run unit tests
+npm run test:unit
+
+# Run visual and functional tests
+npm run test:visual
+
+# Run all tests
+npm run test:all
+```
 
 ## Contributing
 
