@@ -1,8 +1,12 @@
-# Floating Toolbar
+# Floating Toolbar Editor
 
-A modern, customizable floating toolbar for rich text editing. The toolbar appears when text is selected and provides formatting options like bold, italic, underline, strikethrough, and more.
+A modern, lightweight WYSIWYG editor with a context-aware floating toolbar. Built by [Tesseract](https://www.4-cube.io).
 
-Built by [Tesseract](https://4-cube.io).
+![Tesseract Logo](https://www.4-cube.io/images/logo.png)
+
+## Overview
+
+The Floating Toolbar Editor is a sophisticated yet lightweight WYSIWYG editor that provides a context-aware floating toolbar for text formatting. Built by the team at Tesseract, it offers a modern and intuitive editing experience similar to popular platforms like Medium or Notion.
 
 ## Features
 
@@ -34,27 +38,18 @@ There are several ways to include the Floating Toolbar in your project:
 <script src="path/to/FloatingToolbar.js"></script>
 ```
 
-### Option 2: Clone the repository
+
+### Option 2: Build from source
+
+If you want to customize the library, clone this repo and then:
 
 ```bash
-git clone https://github.com/yourusername/floatingtoolbar-ts.git
 cd floatingtoolbar-ts
 npm install
 npm run build
 ```
 
-Then copy the built files from the `dist/` directory to your project.
-
-### Option 3: Build from source
-
-If you want to customize the library:
-
-```bash
-git clone https://github.com/yourusername/floatingtoolbar-ts.git
-cd floatingtoolbar-ts
-npm install
-npm run build
-```
+Or copy the built files from the `dist/` directory to your project.
 
 ## Basic Usage
 
