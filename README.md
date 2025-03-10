@@ -2,7 +2,6 @@
 
 A modern, lightweight WYSIWYG editor with a context-aware floating toolbar. Built by [Tesseract](https://www.4-cube.io).
 
-![Tesseract Logo](https://www.4-cube.io/images/logo.png)
 
 ## Overview
 
@@ -411,7 +410,3 @@ For extended features and enterprise support, contact the Tesseract team:
 - 🌐 Website: [4-cube.io](https://4-cube.io)
 
 Built with ❤️ by Tesseract
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
