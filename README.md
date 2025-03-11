@@ -1,6 +1,6 @@
 # Floating Toolbar Editor
 
-A modern, lightweight WYSIWYG editor with a context-aware floating toolbar. Built by [Tesseract](https://www.4-cube.io).
+A modern, lightweight WYSIWYG editor with a context-aware floating toolbar. [View the Showcase + Demos](https://ft.4-cube.io).
 
 
 ## Overview
