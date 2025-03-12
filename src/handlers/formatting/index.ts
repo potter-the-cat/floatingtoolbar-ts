@@ -115,14 +115,86 @@ export function handleHeading(
     const parentElement = container.nodeType === 3 ? container.parentElement : container as HTMLElement;
     if (!parentElement) return;
 
-    // Check if we're already in a heading of this level
-    const currentHeading = (parentElement as HTMLElement).closest(`h${level.slice(-1)}`);
-    if (currentHeading) {
-        // Remove the heading by replacing it with its content
-        document.execCommand('formatBlock', false, 'P');
+    // Check if we're in a list item
+    const listItem = parentElement.closest('li');
+    if (listItem) {
+        // Store the selection details before modifying the DOM
+        const selectionText = selection.toString();
+        const selectionStartOffset = range.startOffset;
+        const selectionEndOffset = range.endOffset;
+        
+        // Check if the list item already contains a heading of this level
+        const currentHeading = listItem.querySelector(`h${level.slice(-1)}`);
+        
+        if (currentHeading) {
+            // If heading exists, replace it with its content
+            const headingContent = currentHeading.innerHTML;
+            listItem.innerHTML = headingContent;
+        } else {
+            // If no heading, wrap content in a heading
+            const content = listItem.innerHTML;
+            listItem.innerHTML = `<${level}>${content}</${level}>`;
+        }
+        
+        // Restore selection after DOM modification
+        try {
+            // Find the text node to select
+            const walker = document.createTreeWalker(
+                listItem,
+                NodeFilter.SHOW_TEXT,
+                null
+            );
+            
+            let node;
+            let textContent = '';
+            let targetNode = null;
+            
+            // Find the text node that contains our selection
+            while (node = walker.nextNode()) {
+                const nodeText = node.textContent || '';
+                if (nodeText.includes(selectionText)) {
+                    targetNode = node;
+                    break;
+                }
+                textContent += nodeText;
+            }
+            
+            if (targetNode) {
+                // Create a new range for the found text node
+                const newRange = document.createRange();
+                newRange.setStart(targetNode, selectionStartOffset);
+                newRange.setEnd(targetNode, selectionEndOffset);
+                
+                // Apply the new selection
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                
+                // Update the stored range
+                this.state.selectionRange = newRange.cloneRange();
+                this.state.selectionRect = newRange.getBoundingClientRect();
+            }
+        } catch (error) {
+            console.error('Error restoring selection:', error);
+        }
     } else {
-        // Create new heading
-        document.execCommand('formatBlock', false, level.toUpperCase());
+        // Standard behavior for non-list content
+        // Store the selection details before modifying the DOM
+        const selectionText = selection.toString();
+        
+        // Check if we're already in a heading of this level
+        const currentHeading = (parentElement as HTMLElement).closest(`h${level.slice(-1)}`);
+        if (currentHeading) {
+            // Remove the heading by replacing it with its content
+            document.execCommand('formatBlock', false, 'P');
+        } else {
+            // Create new heading
+            document.execCommand('formatBlock', false, level.toUpperCase());
+        }
+        
+        // Ensure the selection is still active
+        if (selection.rangeCount === 0 && this.state.selectionRange) {
+            selection.addRange(this.state.selectionRange);
+        }
     }
 
     // Update selection and state
@@ -394,10 +466,18 @@ export function updateFormatButtonStates(
 
     // Update heading buttons if they exist
     if (this.elements.h1Button) {
-        this.elements.h1Button.classList.toggle('active', !!(parentElement as HTMLElement).closest('h1'));
+        const isH1 = !!(parentElement as HTMLElement).closest('h1');
+        // Check for h1 inside list item
+        const listItem = (parentElement as HTMLElement).closest('li');
+        const hasH1InListItem = listItem ? !!listItem.querySelector('h1') : false;
+        this.elements.h1Button.classList.toggle('active', isH1 || hasH1InListItem);
     }
     if (this.elements.h2Button) {
-        this.elements.h2Button.classList.toggle('active', !!(parentElement as HTMLElement).closest('h2'));
+        const isH2 = !!(parentElement as HTMLElement).closest('h2');
+        // Check for h2 inside list item
+        const listItem = (parentElement as HTMLElement).closest('li');
+        const hasH2InListItem = listItem ? !!listItem.querySelector('h2') : false;
+        this.elements.h2Button.classList.toggle('active', isH2 || hasH2InListItem);
     }
     
     // Update code button if it exists
